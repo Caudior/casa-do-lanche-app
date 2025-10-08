@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import LogoutButton from "@/components/LogoutButton"; // Importar o novo componente
 
 interface MenuItem {
   id: string;
@@ -49,9 +50,12 @@ const Menu = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-foreground">Nosso Cardápio</h1>
-          <Button onClick={() => navigate("/")} variant="outline">
-            Voltar para o Início
-          </Button>
+          <div className="flex items-center space-x-4">
+            <Button onClick={() => navigate("/")} variant="outline">
+              Voltar para o Início
+            </Button>
+            <LogoutButton /> {/* Adicionando o botão de logout aqui */}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
