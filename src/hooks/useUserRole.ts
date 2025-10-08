@@ -13,10 +13,12 @@ export const useUserRole = () => {
     const fetchUserRole = async () => {
       setIsLoadingRole(true);
       if (session?.user) {
+        // Convertendo session.user.id para string para garantir compatibilidade com a coluna 'id' tipo TEXT
+        const userIdAsString = session.user.id as string; 
         const { data, error } = await supabase
           .from("usuario")
           .select("tipo_usuario")
-          .eq("id", session.user.id)
+          .eq("id", userIdAsString)
           .single();
 
         if (error) {
