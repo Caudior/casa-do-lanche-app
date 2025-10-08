@@ -4,10 +4,20 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const session = useSession(); // Hook para obter a sessão do usuário
+
+  // Redireciona para o cardápio se o usuário já estiver logado
+  useEffect(() => {
+    if (session) {
+      navigate("/menu");
+    }
+  }, [session, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -83,14 +93,13 @@ const Login = () => {
                   password_input_placeholder: 'Sua nova senha',
                   button_label: 'Atualizar',
                 },
-                // Adicione outras variáveis de localização conforme necessário
                 common: {
                   button_label_loading: 'Carregando...',
                 },
               },
             }}
             magicLink={false}
-            redirectTo="/"
+            redirectTo="/menu" // Redireciona para /menu após o login
             onlyThirdPartyProviders={false}
           />
         </div>
