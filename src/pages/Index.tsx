@@ -19,7 +19,7 @@ const Index = () => {
         </p>
         <div className="space-x-4">
           <Button onClick={() => navigate("/login")} className="bg-primary hover:bg-primary/90">
-            Entrar
+            Login
           </Button>
           <Button onClick={() => navigate("/register")} variant="outline">
             Criar Conta
