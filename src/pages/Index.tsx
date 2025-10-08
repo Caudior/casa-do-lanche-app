@@ -1,9 +1,11 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole"; // Importar o hook
 
 const Index = () => {
   const navigate = useNavigate();
+  const { userRole, isLoadingRole } = useUserRole(); // Usar o hook
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
@@ -27,6 +29,11 @@ const Index = () => {
           <Button onClick={() => navigate("/menu")} className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
             Ver Cardápio
           </Button>
+          {!isLoadingRole && userRole === "admin" && (
+            <Button onClick={() => navigate("/admin")} variant="ghost" className="text-accent hover:text-accent-foreground">
+              Painel Admin
+            </Button>
+          )}
         </div>
       </div>
       <MadeWithDyad />

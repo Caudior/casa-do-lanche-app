@@ -14,7 +14,7 @@ const Register = () => {
     name: "",
     phone: "",
     sector: "",
-    userType: "cliente"
+    userType: "cliente" // Default user type
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -50,6 +50,30 @@ const Register = () => {
       }
 
       if (data.user) {
+        // Insert user data into the public.usuario table
+        const { error: profileError } = await supabase
+          .from("usuario")
+          .insert({
+            id: data.user.id,
+            nome: formData.name,
+            telefone: formData.phone,
+            setor: formData.sector,
+            email: formData.email,
+            tipo_usuario: formData.userType,
+            created_at: new Date().toISOString(),
+            // 'senha' column is not populated here as auth.users handles passwords
+          });
+
+        if (profileError) {
+          console.error("Error inserting user into 'usuario' table:", profileError.message);
+          toast({
+            title: "Erro!",
+            description: "Ocorreu um erro ao salvar os dados do usuário. Por favor, tente novamente.",
+            variant: "destructive",
+          });
+          throw new Error("Falha ao criar perfil do usuário.");
+        }
+
         toast({
           title: "Sucesso!",
           description: "Conta criada com sucesso. Por favor, verifique seu email.",

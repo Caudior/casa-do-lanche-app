@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import LogoutButton from "@/components/LogoutButton"; // Importar o novo componente
+import LogoutButton from "@/components/LogoutButton";
+import { useUserRole } from "@/hooks/useUserRole"; // Importar o hook
 
 interface MenuItem {
   id: string;
@@ -44,6 +45,7 @@ const dummyMenuItems: MenuItem[] = [
 
 const Menu = () => {
   const navigate = useNavigate();
+  const { userRole, isLoadingRole } = useUserRole(); // Usar o hook
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
@@ -54,7 +56,12 @@ const Menu = () => {
             <Button onClick={() => navigate("/")} variant="outline">
               Voltar para o Início
             </Button>
-            <LogoutButton /> {/* Adicionando o botão de logout aqui */}
+            {!isLoadingRole && userRole === "admin" && (
+              <Button onClick={() => navigate("/admin")} variant="ghost" className="text-accent hover:text-accent-foreground">
+                Painel Admin
+              </Button>
+            )}
+            <LogoutButton />
           </div>
         </div>
 

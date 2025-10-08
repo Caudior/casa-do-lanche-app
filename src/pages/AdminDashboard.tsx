@@ -1,0 +1,81 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import LogoutButton from "@/components/LogoutButton";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useEffect } from "react";
+
+const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const { userRole, isLoadingRole } = useUserRole();
+
+  useEffect(() => {
+    if (!isLoadingRole && userRole !== "admin") {
+      navigate("/"); // Redirecionar não-administradores
+    }
+  }, [userRole, isLoadingRole, navigate]);
+
+  if (isLoadingRole) {
+    return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Carregando...</div>;
+  }
+
+  if (userRole !== "admin") {
+    return null; // Ou uma mensagem de "Acesso Negado"
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground">Painel Administrativo</h1>
+          <div className="flex items-center space-x-4">
+            <Button onClick={() => navigate("/menu")} variant="outline">
+              Ver Cardápio
+            </Button>
+            <LogoutButton />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle>Gerenciar Cardápio</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground mb-4">Adicione, edite ou remova itens do cardápio.</p>
+              <Button onClick={() => navigate("/admin/menu-management")} className="w-full bg-primary hover:bg-primary/90">
+                Acessar
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle>Gerenciar Pedidos</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground mb-4">Visualize e atualize o status dos pedidos.</p>
+              <Button onClick={() => navigate("/admin/order-management")} className="w-full bg-primary hover:bg-primary/90">
+                Acessar
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle>Relatórios Mensais</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground mb-4">Gere relatórios de gastos por cliente.</p>
+              <Button onClick={() => navigate("/admin/reports")} className="w-full bg-primary hover:bg-primary/90">
+                Acessar
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
