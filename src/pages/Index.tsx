@@ -26,9 +26,7 @@ const Index = () => {
           <Button onClick={() => navigate("/register")} variant="outline">
             Criar Conta
           </Button>
-          <Button onClick={() => navigate("/menu")} className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-            Ver Cardápio
-          </Button>
+          {/* Botão "Ver Cardápio" removido */}
           {!isLoadingRole && userRole === "admin" && (
             <Button onClick={() => navigate("/admin")} variant="ghost" className="text-accent hover:text-accent-foreground">
               Painel Admin
