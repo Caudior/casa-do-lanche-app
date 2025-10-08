@@ -18,13 +18,13 @@ const Index = () => {
           Seu lugar favorito para os melhores lanches!
         </p>
         <div className="space-x-4">
-          <Button onClick={() => navigate("/login")} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => navigate("/login")} className="bg-primary hover:bg-primary/90">
             Login
           </Button>
           <Button onClick={() => navigate("/register")} variant="outline">
             Criar Conta
           </Button>
-          <Button onClick={() => navigate("/menu")} variant="secondary"> {/* Novo botão para o cardápio */}
+          <Button onClick={() => navigate("/menu")} className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
             Ver Cardápio
           </Button>
         </div>

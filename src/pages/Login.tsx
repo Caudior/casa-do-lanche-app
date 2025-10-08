@@ -33,8 +33,8 @@ const Login = () => {
               variables: {
                 default: {
                   colors: {
-                    brand: '#3b82f6',
-                    brandAccent: '#2563eb',
+                    brand: 'hsl(var(--primary))', // Usando a nova cor primária
+                    brandAccent: 'hsl(var(--primary))', // Usando a nova cor primária
                   },
                 },
               },

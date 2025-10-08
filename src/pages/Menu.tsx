@@ -45,16 +45,16 @@ const Menu = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Nosso Cardápio</h1>
+          <h1 className="text-4xl font-bold text-foreground">Nosso Cardápio</h1>
           <Button onClick={() => navigate("/")} variant="outline">
             Voltar para o Início
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-2 lg:grid-cols-3 gap-6">
           {dummyMenuItems.map((item) => (
             <Card key={item.id} className="flex flex-col">
               <img src={item.imageUrl} alt={item.name} className="w-full h-48 object-cover rounded-t-lg" />
@@ -63,10 +63,10 @@ const Menu = () => {
                 <CardDescription>{item.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-2xl font-semibold text-blue-600">R$ {item.price.toFixed(2)}</p>
+                <p className="text-2xl font-semibold text-primary">R$ {item.price.toFixed(2)}</p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-green-600 hover:bg-green-700">Adicionar ao Pedido</Button>
+                <Button className="w-full bg-primary hover:bg-primary/90">Adicionar ao Pedido</Button>
               </CardFooter>
             </Card>
           ))}
