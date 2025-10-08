@@ -1,7 +1,7 @@
 "use client";
 
-import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { createClient } from "@/integrations/supabase/client";
+import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { ReactNode } from "react";
 
 interface SessionProviderProps {
