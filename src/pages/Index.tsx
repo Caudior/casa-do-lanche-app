@@ -24,6 +24,9 @@ const Index = () => {
           <Button onClick={() => navigate("/register")} variant="outline">
             Criar Conta
           </Button>
+          <Button onClick={() => navigate("/menu")} variant="secondary"> {/* Novo botão para o cardápio */}
+            Ver Cardápio
+          </Button>
         </div>
       </div>
       <MadeWithDyad />
