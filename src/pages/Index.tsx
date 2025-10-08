@@ -18,7 +18,7 @@ const Index = () => {
           Seu lugar favorito para os melhores lanches!
         </p>
         <div className="space-x-4">
-          <Button onClick={() => navigate("/login")} className="bg-primary hover:bg-primary/90">
+          <Button onClick={() => navigate("/menu")} className="bg-primary hover:bg-primary/90">
             Entrar
           </Button>
           <Button onClick={() => navigate("/register")} variant="outline">
