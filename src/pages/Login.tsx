@@ -13,6 +13,11 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-lg">
         <div className="text-center">
+          <img 
+            src="/casa_do_lanche_logo_420.png" 
+            alt="Casa do Lanche Logo" 
+            className="mx-auto mb-6 w-48 h-auto" 
+          />
           <h1 className="text-3xl font-bold text-gray-900">Login</h1>
           <p className="mt-2 text-sm text-gray-600">
             Entre na sua conta para continuar
