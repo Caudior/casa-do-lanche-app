@@ -54,7 +54,7 @@ const Menu = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {dummyMenuItems.map((item) => (
             <Card key={item.id} className="flex flex-col">
               <img src={item.imageUrl} alt={item.name} className="w-full h-48 object-cover rounded-t-lg" />
