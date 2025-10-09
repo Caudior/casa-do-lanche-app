@@ -114,7 +114,7 @@ const Menu = () => {
     });
 
     // Abrir WhatsApp com a mensagem pré-preenchida
-    const ownerPhoneNumber = "5511999999999"; // <-- SUBSTITUA PELO NÚMERO DE WHATSAPP DO CLAUDIO RODRIGUES (com código do país e DDD, sem espaços ou caracteres especiais)
+    const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues
     const ownerName = "CLAUDIO RODRIGUES"; 
     const clientName = userName || "Cliente";
 
