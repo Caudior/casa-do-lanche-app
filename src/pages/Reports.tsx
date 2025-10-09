@@ -38,6 +38,7 @@ interface ClientReport {
   userId: string;
   userName: string;
   userPhone: string;
+  userSector: string; // Adicionado o setor do usuário
   totalSpent: number;
   numOrders: number;
   orders: Order[];
@@ -81,7 +82,7 @@ const Reports = () => {
 
     const { data: ordersData, error } = await supabase
       .from("pedidos")
-      .select("*, usuario(id, nome, telefone), cardapio(nome)")
+      .select("*, usuario(id, nome, telefone, setor), cardapio(nome)") // Incluindo 'setor'
       .gte("data_pedido", startOfMonth.toISOString())
       .lt("data_pedido", endOfMonth.toISOString())
       .order("data_pedido", { ascending: true });
@@ -103,6 +104,7 @@ const Reports = () => {
             userId: userId,
             userName: order.usuario.nome || "Usuário Desconhecido",
             userPhone: order.usuario.telefone || "N/A",
+            userSector: order.usuario.setor || "N/A", // Populando o setor
             totalSpent: 0,
             numOrders: 0,
             orders: [],
@@ -128,6 +130,7 @@ const Reports = () => {
     let message = `*Relatório Mensal de Pedidos - ${monthName}/${selectedYear}*\n\n`;
     message += `*Cliente:* ${client.userName}\n`;
     message += `*Telefone:* ${client.userPhone}\n`;
+    message += `*Setor:* ${client.userSector}\n`; // Incluindo setor na mensagem
     message += `*Total Gasto:* R$ ${client.totalSpent.toFixed(2).replace('.', ',')}\n`;
     message += `*Número de Pedidos:* ${client.numOrders}\n\n`;
     message += `*Detalhes dos Pedidos:*\n`;
@@ -213,24 +216,24 @@ const Reports = () => {
                   <AccordionItem key={client.userId} value={client.userId} className="border-b border-border">
                     <AccordionTrigger className="flex items-center justify-between p-4 hover:bg-muted/50">
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-secondary-foreground font-bold">
                           {index + 1}
                         </span>
                         <div className="text-left">
-                          <p className="font-medium text-foreground">{client.userName}</p>
-                          <p className="text-sm text-muted-foreground">{client.numOrders} pedidos</p>
+                          <p className="font-bold text-foreground">{client.userName}</p>
+                          <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="text-lg font-semibold text-primary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
+                        <span className="text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
                         <Button
-                          variant="ghost"
+                          variant="default"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation(); // Evita que o accordion feche/abra
                             handleShareReport(client);
                           }}
-                          className="text-accent hover:text-accent-foreground"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <Share2 className="h-4 w-4 mr-2" /> Compartilhar
                         </Button>
