@@ -1,4 +1,4 @@
-import { jsPDF } from "jspdf";
+import jsPDF from "jspdf"; // Alterado para importação padrão
 import "jspdf-autotable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
