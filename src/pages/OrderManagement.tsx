@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label"; // Importação adicionada
+import { Label } from "@/components/ui/label";
 
 interface Order {
   id: string;
@@ -110,21 +110,28 @@ const OrderManagement = () => {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Gerenciar Pedidos</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
+          <div className="flex items-center mb-4 sm:mb-0">
+            <img 
+              src="/casa_do_lanche_logo_420.png" 
+              alt="Casa do Lanche Logo" 
+              className="w-16 h-auto mr-4" 
+            />
+            <h1 className="text-4xl font-bold text-foreground">Gerenciar Pedidos</h1>
+          </div>
           <Button onClick={() => navigate("/admin")} variant="outline">
             Voltar para o Painel
           </Button>
         </div>
 
-        <div className="mb-6 flex items-center space-x-4">
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <Label htmlFor="date-filter" className="text-foreground">Filtrar por Data:</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-[280px] justify-start text-left font-normal",
+                  "w-full sm:w-[280px] justify-start text-left font-normal",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -149,32 +156,34 @@ const OrderManagement = () => {
         ) : orders.length === 0 ? (
           <div className="text-center text-muted-foreground">Nenhum pedido encontrado para a data selecionada.</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Email Cliente</TableHead>
-                <TableHead>Quantidade</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data do Pedido</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.item_nome}</TableCell>
-                  <TableCell>{order.usuario_nome}</TableCell>
-                  <TableCell>{order.usuario_email}</TableCell>
-                  <TableCell>{order.quantidade}</TableCell>
-                  <TableCell>R$ {order.total.toFixed(2)}</TableCell>
-                  <TableCell>{order.status}</TableCell>
-                  <TableCell>{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Email Cliente</TableHead>
+                  <TableHead>Quantidade</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data do Pedido</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.item_nome}</TableCell>
+                    <TableCell>{order.usuario_nome}</TableCell>
+                    <TableCell>{order.usuario_email}</TableCell>
+                    <TableCell>{order.quantidade}</TableCell>
+                    <TableCell>R$ {order.total.toFixed(2)}</TableCell>
+                    <TableCell>{order.status}</TableCell>
+                    <TableCell>{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </div>
