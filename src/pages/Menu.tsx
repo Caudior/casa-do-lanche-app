@@ -6,6 +6,8 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from "@supabase/auth-helpers-react";
+import { v4 as uuidv4 } from 'uuid';
 
 interface MenuItem {
   id: string;
@@ -20,13 +22,35 @@ const Menu = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole } = useUserRole();
   const { toast } = useToast();
+  const session = useSession();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMenuItems();
   }, []);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from("usuario")
+          .select("nome")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error) {
+          console.error("Erro ao buscar nome do usuário:", error.message);
+          setUserName(null);
+        } else if (data) {
+          setUserName(data.nome);
+        }
+      }
+    };
+    fetchUserName();
+  }, [session]);
 
   const fetchMenuItems = async () => {
     setLoading(true);
@@ -47,6 +71,87 @@ const Menu = () => {
       setMenuItems(data as MenuItem[]);
     }
     setLoading(false);
+  };
+
+  const handlePlaceOrder = async (item: MenuItem) => {
+    if (!session?.user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para fazer um pedido.",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
+    const orderId = uuidv4();
+    const quantity = 1; // Por enquanto, quantidade fixa em 1
+    const total = item.preco * quantity;
+    const orderDate = new Date().toISOString();
+
+    const { error: insertError } = await supabase.from("pedidos").insert({
+      id: orderId,
+      usuario_id: session.user.id,
+      cardapio_id: item.id,
+      quantidade: quantity.toString(), // Converte para string conforme o schema atual
+      total: total.toFixed(2).toString(), // Converte para string conforme o schema atual
+      data_pedido: orderDate,
+      status: "Pendente",
+    });
+
+    if (insertError) {
+      toast({
+        title: "Erro ao fazer pedido",
+        description: insertError.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Pedido Realizado!",
+      description: `"${item.nome}" adicionado ao seu pedido.`,
+    });
+
+    // Invocar a função Edge para enviar a mensagem de WhatsApp
+    try {
+      const { data, error: edgeFunctionError } = await supabase.functions.invoke('send-whatsapp', {
+        body: JSON.stringify({
+          clientName: userName || "Cliente",
+          itemName: item.nome,
+          itemPrice: item.preco.toFixed(2),
+          quantity: quantity,
+          total: total.toFixed(2),
+          orderId: orderId,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (edgeFunctionError) {
+        console.error("Erro ao invocar função Edge:", edgeFunctionError);
+        toast({
+          title: "Erro no WhatsApp",
+          description: "Não foi possível enviar a notificação do pedido via WhatsApp.",
+          variant: "destructive",
+        });
+      } else {
+        console.log("Função Edge de WhatsApp invocada com sucesso:", data);
+        toast({
+          title: "Notificação Enviada",
+          description: "O proprietário foi notificado sobre o seu pedido via WhatsApp.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Erro inesperado ao invocar função Edge:", error);
+      toast({
+        title: "Erro Inesperado",
+        description: "Ocorreu um erro ao tentar notificar o proprietário.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -84,7 +189,7 @@ const Menu = () => {
                   <p className="text-2xl font-semibold text-primary">R$ {item.preco.toFixed(2)}</p>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-primary hover:bg-primary/90">Adicionar ao Pedido</Button>
+                  <Button onClick={() => handlePlaceOrder(item)} className="w-full bg-primary hover:bg-primary/90">Adicionar ao Pedido</Button>
                 </CardFooter>
               </Card>
             ))}
