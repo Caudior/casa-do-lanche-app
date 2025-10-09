@@ -113,45 +113,16 @@ const Menu = () => {
       description: `"${item.nome}" adicionado ao seu pedido.`,
     });
 
-    // Invocar a função Edge para enviar a mensagem de WhatsApp
-    try {
-      const { data, error: edgeFunctionError } = await supabase.functions.invoke('send-whatsapp', {
-        body: JSON.stringify({
-          clientName: userName || "Cliente",
-          itemName: item.nome,
-          itemPrice: item.preco.toFixed(2),
-          quantity: quantity,
-          total: total.toFixed(2),
-          orderId: orderId,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
+    // Abrir WhatsApp com a mensagem pré-preenchida
+    const ownerPhoneNumber = "5511999999999"; // <-- SUBSTITUA PELO NÚMERO DE WHATSAPP DO CLAUDIO RODRIGUES (com código do país e DDD, sem espaços ou caracteres especiais)
+    const ownerName = "CLAUDIO RODRIGUES"; 
+    const clientName = userName || "Cliente";
 
-      if (edgeFunctionError) {
-        console.error("Erro ao invocar função Edge:", edgeFunctionError);
-        toast({
-          title: "Erro no WhatsApp",
-          description: "Não foi possível enviar a notificação do pedido via WhatsApp.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Função Edge de WhatsApp invocada com sucesso:", data);
-        toast({
-          title: "Notificação Enviada",
-          description: "O proprietário foi notificado sobre o seu pedido via WhatsApp.",
-        });
-      }
-    } catch (error: any) {
-      console.error("Erro inesperado ao invocar função Edge:", error);
-      toast({
-        title: "Erro Inesperado",
-        description: "Ocorreu um erro ao tentar notificar o proprietário.",
-        variant: "destructive",
-      });
-    }
+    const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmo ter comprado o lanche ${item.nome} como mostra a mensagem.`;
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    const whatsappUrl = `https://wa.me/${ownerPhoneNumber}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
