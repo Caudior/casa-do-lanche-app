@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } => "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Share2 } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { generateClientReportPdf } from "@/utils/pdfGenerator"; // Importar o utilitário de PDF
 
 interface Order {
   id: string;
@@ -127,10 +128,28 @@ const Reports = () => {
 
   const handleShareReport = (client: ClientReport) => {
     const monthName = months.find(m => m.value === selectedMonth)?.label;
+    
+    // 1. Gerar e baixar o PDF
+    if (monthName) {
+      generateClientReportPdf(client, monthName, selectedYear);
+      toast({
+        title: "PDF Gerado!",
+        description: "O relatório em PDF foi baixado. Anexe-o manualmente no WhatsApp.",
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível determinar o nome do mês para o PDF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 2. Abrir WhatsApp com a mensagem de texto
     let message = `*Relatório Mensal de Pedidos - ${monthName}/${selectedYear}*\n\n`;
     message += `*Cliente:* ${client.userName}\n`;
     message += `*Telefone:* ${client.userPhone}\n`;
-    message += `*Setor:* ${client.userSector}\n`; // Incluindo setor na mensagem
+    message += `*Setor:* ${client.userSector}\n`;
     message += `*Total Gasto:* R$ ${client.totalSpent.toFixed(2).replace('.', ',')}\n`;
     message += `*Número de Pedidos:* ${client.numOrders}\n\n`;
     message += `*Detalhes dos Pedidos:*\n`;
