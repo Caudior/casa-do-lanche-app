@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom"; // Corrigido aqui
+import { useNavigate } from "react-router-dom"; // Corrigido para 'from'
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
