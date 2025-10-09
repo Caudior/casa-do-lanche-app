@@ -12,6 +12,7 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Importar Card
 
 interface Order {
   id: string;
@@ -34,6 +35,8 @@ const OrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(new Date()); // Default to current day
+  const [dailyTotal, setDailyTotal] = useState<number>(0);
+  const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
@@ -45,44 +48,31 @@ const OrderManagement = () => {
 
   const fetchOrders = async (selectedDate?: Date) => {
     setLoading(true);
-    let query = supabase
+    const today = selectedDate || new Date(); // Usa selectedDate ou o dia atual para a visualização diária
+
+    // --- Buscar pedidos para o dia selecionado (para a tabela e total diário) ---
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const { data: dailyOrdersData, error: dailyError } = await supabase
       .from("pedidos")
-      .select("*, usuario(nome, email), cardapio(nome)");
+      .select("*, usuario(nome, email), cardapio(nome)")
+      .gte("data_pedido", startOfDay.toISOString())
+      .lt("data_pedido", endOfDay.toISOString())
+      .order("data_pedido", { ascending: false });
 
-    if (selectedDate) {
-      const startOfDay = new Date(selectedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(selectedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      query = query
-        .gte("data_pedido", startOfDay.toISOString())
-        .lt("data_pedido", endOfDay.toISOString());
-    } else {
-      // Default to current day if no date is selected
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-
-      query = query
-        .gte("data_pedido", today.toISOString())
-        .lt("data_pedido", tomorrow.toISOString());
-    }
-
-    query = query.order("data_pedido", { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) {
+    if (dailyError) {
       toast({
         title: "Erro",
-        description: "Erro ao carregar pedidos: " + error.message,
+        description: "Erro ao carregar pedidos do dia: " + dailyError.message,
         variant: "destructive",
       });
       setOrders([]);
+      setDailyTotal(0);
     } else {
-      const formattedOrders: Order[] = data.map((order: any) => ({
+      const formattedDailyOrders: Order[] = dailyOrdersData.map((order: any) => ({
         id: order.id,
         usuario_id: order.usuario_id,
         cardapio_id: order.cardapio_id,
@@ -94,8 +84,30 @@ const OrderManagement = () => {
         usuario_email: order.usuario?.email || "N/A",
         item_nome: order.cardapio?.nome || "N/A",
       }));
-      setOrders(formattedOrders);
+      setOrders(formattedDailyOrders);
+      const currentDailyTotal = formattedDailyOrders.reduce((sum, order) => sum + order.total, 0);
+      setDailyTotal(currentDailyTotal);
     }
+
+    // --- Buscar pedidos para o mês corrente (para o total mensal) ---
+    const currentMonth = new Date();
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0); // Último dia do mês corrente
+
+    const { data: monthlyOrdersData, error: monthlyError } = await supabase
+      .from("pedidos")
+      .select("total")
+      .gte("data_pedido", startOfMonth.toISOString())
+      .lt("data_pedido", endOfMonth.toISOString());
+
+    if (monthlyError) {
+      console.error("Erro ao carregar pedidos do mês para total:", monthlyError.message);
+      setMonthlyTotal(0);
+    } else {
+      const currentMonthlyTotal = monthlyOrdersData.reduce((sum, order: any) => sum + parseFloat(order.total), 0);
+      setMonthlyTotal(currentMonthlyTotal);
+    }
+
     setLoading(false);
   };
 
@@ -122,6 +134,33 @@ const OrderManagement = () => {
           <Button onClick={() => navigate("/admin")} variant="outline">
             Voltar para o Painel
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Vendas do Dia</CardTitle>
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">R$ {dailyTotal.toFixed(2).replace('.', ',')}</div>
+              <p className="text-xs text-muted-foreground">
+                {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "Hoje"}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Vendas do Mês</CardTitle>
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">R$ {monthlyTotal.toFixed(2).replace('.', ',')}</div>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(), "MMMM yyyy", { locale: ptBR })}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -176,7 +215,7 @@ const OrderManagement = () => {
                     <TableCell>{order.usuario_nome}</TableCell>
                     <TableCell>{order.usuario_email}</TableCell>
                     <TableCell>{order.quantidade}</TableCell>
-                    <TableCell>R$ {order.total.toFixed(2)}</TableCell>
+                    <TableCell>R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
                     <TableCell>{order.status}</TableCell>
                     <TableCell>{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
                   </TableRow>
