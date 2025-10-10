@@ -2,16 +2,21 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect, useState } from "react"; // Importar useEffect e useState
+import { useEffect, useState } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole } = useUserRole();
   const [supabaseEnvStatus, setSupabaseEnvStatus] = useState("Verificando...");
+  const [supabaseUrlValue, setSupabaseUrlValue] = useState("Não lido");
+  const [supabaseKeyValue, setSupabaseKeyValue] = useState("Não lido");
 
   useEffect(() => {
     const url = import.meta.env.VITE_SUPABASE_URL;
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    setSupabaseUrlValue(url || "Não definido");
+    setSupabaseKeyValue(key || "Não definido");
 
     if (url && key && url !== 'http://localhost' && key !== 'dummy_key') {
       setSupabaseEnvStatus("Supabase configurado (chaves presentes)");
@@ -44,6 +49,12 @@ const Index = () => {
         </div>
         <div className="mt-4 text-sm text-muted-foreground">
           Status Supabase: <span className="font-semibold">{supabaseEnvStatus}</span>
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          DEBUG URL: <span className="font-mono break-all">{supabaseUrlValue}</span>
+        </div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          DEBUG KEY: <span className="font-mono break-all">{supabaseKeyValue}</span>
         </div>
       </div>
       <MadeWithDyad />
