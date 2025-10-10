@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { showError } from '@/utils/toast'; // Importar o utilitário de toast
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -8,14 +9,13 @@ console.log("DEBUG: Supabase client.ts carregado.");
 console.log("DEBUG: VITE_SUPABASE_URL lido:", supabaseUrl);
 console.log("DEBUG: VITE_SUPABASE_ANON_KEY lido:", supabaseKey);
 
-// Apenas crie o cliente se as chaves existirem, caso contrário, o erro será lançado pelo Supabase SDK
-// ou o app pode continuar a carregar com funcionalidade Supabase desativada temporariamente para depuração.
-export const supabase = createClient(
-  supabaseUrl || 'http://localhost', // Valor dummy para evitar erro de tipo se undefined
-  supabaseKey || 'dummy_key' // Valor dummy para evitar erro de tipo se undefined
-);
-
-// Se as chaves forem realmente undefined, ainda podemos querer um aviso claro
+// Verifique se as chaves estão presentes antes de criar o cliente
 if (!supabaseUrl || !supabaseKey) {
-  console.error('AVISO: As variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não foram definidas corretamente.');
+  const errorMessage = 'ERRO: As variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não foram definidas corretamente. Verifique seu arquivo .env.';
+  console.error(errorMessage);
+  showError(errorMessage); // Mostrar toast de erro na UI
+  // Retorna um cliente dummy para evitar que a aplicação quebre, mas com aviso claro
+  export const supabase = createClient('http://localhost', 'dummy_key');
+} else {
+  export const supabase = createClient(supabaseUrl, supabaseKey);
 }
