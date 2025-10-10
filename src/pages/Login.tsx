@@ -1,15 +1,10 @@
-import { useState } from "react";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
+import LoginForm from "@/components/LoginForm"; // Importar o novo componente
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const session = useSession(); // Hook para obter a sessão do usuário
 
   // Redireciona para o cardápio se o usuário já estiver logado
@@ -35,73 +30,7 @@ const Login = () => {
         </div>
         
         <div className="mt-8">
-          <Auth
-            supabaseClient={supabase}
-            providers={[]}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: 'hsl(var(--primary))', // Usando a nova cor primária
-                    brandAccent: 'hsl(var(--primary))', // Usando a nova cor primária
-                  },
-                },
-              },
-            }}
-            theme="light"
-            localization={{
-              variables: {
-                sign_in: {
-                  email_label: 'Email',
-                  password_label: 'Senha',
-                  button_label: 'Entrar',
-                  social_provider_text: 'Continuar com {provider}',
-                  link_text: 'Não tem uma conta? {0}',
-                  forgotten_password_text: 'Esqueceu sua senha?',
-                },
-                sign_up: {
-                  email_label: 'Email',
-                  password_label: 'Senha',
-                  button_label: 'Criar conta',
-                  social_provider_text: 'Continuar com {provider}',
-                  link_text: 'Já tem uma conta? {0}',
-                },
-                forgotten_password: {
-                  email_label: 'Email',
-                  button_label: 'Enviar instruções de recuperação',
-                  link_text: 'Lembrou sua senha? {0}',
-                },
-                update_password: {
-                  password_label: 'Nova senha',
-                  button_label: 'Atualizar senha',
-                },
-                magic_link: {
-                  email_label: 'Email',
-                  button_label: 'Enviar link mágico',
-                  link_text: 'Já tem uma conta? {0}',
-                },
-                verify_otp: {
-                  email_label: 'Email',
-                  phone_label: 'Número de telefone',
-                  token_label: 'Código OTP',
-                  button_label: 'Verificar código',
-                  link_text: 'Já tem uma conta? {0}',
-                },
-                update_user: {
-                  password_label: 'Nova senha',
-                  password_input_placeholder: 'Sua nova senha',
-                  button_label: 'Atualizar',
-                },
-                common: {
-                  button_label_loading: 'Carregando...',
-                },
-              },
-            }}
-            magicLink={false}
-            redirectTo="/menu" // Redireciona para /menu após o login
-            onlyThirdPartyProviders={false}
-          />
+          <LoginForm /> {/* Usar o novo componente LoginForm */}
         </div>
       </div>
     </div>
