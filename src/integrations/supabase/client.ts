@@ -8,6 +8,9 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 console.log("DEBUG: Supabase client.ts carregado.");
 console.log("DEBUG: VITE_SUPABASE_URL lido:", supabaseUrl);
 console.log("DEBUG: VITE_SUPABASE_ANON_KEY lido:", supabaseKey);
+console.log("DEBUG: Comprimento de VITE_SUPABASE_URL:", supabaseUrl?.length);
+console.log("DEBUG: Comprimento de VITE_SUPABASE_ANON_KEY:", supabaseKey?.length);
+
 
 let client: SupabaseClient;
 
