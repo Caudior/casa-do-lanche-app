@@ -7,14 +7,17 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Menu from "./pages/Menu";
-import AdminDashboard from "./pages/AdminDashboard"; // Importar nova página
-import MenuManagement from "./pages/MenuManagement"; // Importar nova página
-import OrderManagement from "./pages/OrderManagement"; // Importar nova página
-import Reports from "./pages/Reports"; // Importar nova página
+import AdminDashboard from "./pages/AdminDashboard";
+import MenuManagement from "./pages/MenuManagement";
+import OrderManagement from "./pages/OrderManagement";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import SessionProvider from "./components/SessionProvider";
 
 const queryClient = new QueryClient();
+
+// Adicionando um console.log de teste aqui
+console.log("DEBUG: App.tsx carregado e executando.");
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -28,10 +31,10 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/menu" element={<Menu />} />
-            <Route path="/admin" element={<AdminDashboard />} /> {/* Nova rota para o painel admin */}
-            <Route path="/admin/menu-management" element={<MenuManagement />} /> {/* Nova rota para gerenciamento de cardápio */}
-            <Route path="/admin/order-management" element={<OrderManagement />} /> {/* Nova rota para gerenciamento de pedidos */}
-            <Route path="/admin/reports" element={<Reports />} /> {/* Nova rota para relatórios */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/menu-management" element={<MenuManagement />} />
+            <Route path="/admin/order-management" element={<OrderManagement />} />
+            <Route path="/admin/reports" element={<Reports />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
