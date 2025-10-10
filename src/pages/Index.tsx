@@ -2,30 +2,14 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect, useState } from "react";
+import { useEffect } from "react"; // Removido useState e useEffect relacionados ao debug
 
 const Index = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole } = useUserRole();
-  const [supabaseEnvStatus, setSupabaseEnvStatus] = useState("Verificando...");
-  const [supabaseUrlValue, setSupabaseUrlValue] = useState("Não lido");
-  const [supabaseKeyValue, setSupabaseKeyValue] = useState("Não lido");
+  // As variáveis de estado de depuração foram removidas, pois não são mais necessárias.
 
-  useEffect(() => {
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    setSupabaseUrlValue(url || "Não definido");
-    setSupabaseKeyValue(key || "Não definido");
-
-    if (url && key && url !== 'http://localhost' && key !== 'dummy_key') {
-      setSupabaseEnvStatus("Supabase configurado (chaves presentes)");
-    } else if (!url || !key) {
-      setSupabaseEnvStatus("ERRO: Chaves Supabase ausentes no .env");
-    } else {
-      setSupabaseEnvStatus("AVISO: Usando chaves Supabase dummy (verifique .env)");
-    }
-  }, []);
+  // O useEffect para verificar as chaves Supabase também foi removido.
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
@@ -47,15 +31,7 @@ const Index = () => {
             Criar Conta
           </Button>
         </div>
-        <div className="mt-4 text-sm text-muted-foreground">
-          Status Supabase: <span className="font-semibold">{supabaseEnvStatus}</span>
-        </div>
-        <div className="mt-2 text-xs text-muted-foreground">
-          DEBUG URL: <span className="font-mono break-all">{supabaseUrlValue}</span>
-        </div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          DEBUG KEY: <span className="font-mono break-all">{supabaseKeyValue}</span>
-        </div>
+        {/* As linhas de depuração foram removidas daqui */}
       </div>
       <MadeWithDyad />
     </div>
