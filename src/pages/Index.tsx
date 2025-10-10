@@ -26,12 +26,7 @@ const Index = () => {
           <Button onClick={() => navigate("/register")} variant="outline">
             Criar Conta
           </Button>
-          {/* Botão "Ver Cardápio" removido */}
-          {!isLoadingRole && userRole === "admin" && (
-            <Button onClick={() => navigate("/admin")} variant="ghost" className="text-accent hover:text-accent-foreground">
-              Painel Admin
-            </Button>
-          )}
+          {/* O botão "Painel Admin" foi removido daqui */}
         </div>
       </div>
       <MadeWithDyad />
