@@ -165,6 +165,14 @@ const Register = () => {
           >
             {loading ? "Criando conta..." : "Criar Conta"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/login")}
+            className="w-full mt-4"
+          >
+            Voltar para o Login
+          </Button>
         </form>
       </div>
     </div>
