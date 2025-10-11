@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-// import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger"; // Comentado para diagnóstico
+import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger"; // Descomentado
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
@@ -8,7 +8,7 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
   },
-  plugins: [/* dyadComponentTagger(), */ react()], // dyadComponentTagger() comentado
+  plugins: [dyadComponentTagger(), react()], // dyadComponentTagger() ativado
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
