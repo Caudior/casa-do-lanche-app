@@ -177,7 +177,7 @@ const Menu = () => {
             )}
             {!isLoadingRole && session?.user && ( // Mostrar para usuários logados (clientes ou admins)
               <Button onClick={() => navigate("/my-reports")} variant="ghost" className="text-accent hover:text-accent-foreground">
-                Meus Relatórios
+                Histórico de Pedidos
               </Button>
             )}
             <LogoutButton />
