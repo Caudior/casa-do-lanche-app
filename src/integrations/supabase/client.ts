@@ -4,14 +4,6 @@ import { showError } from '@/utils/toast'; // Importar o utilitário de toast
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Adicionando logs para depuração
-console.log("DEBUG: Supabase client.ts carregado.");
-console.log("DEBUG: VITE_SUPABASE_URL lido:", supabaseUrl);
-console.log("DEBUG: VITE_SUPABASE_ANON_KEY lido:", supabaseKey);
-console.log("DEBUG: Comprimento de VITE_SUPABASE_URL:", supabaseUrl?.length);
-console.log("DEBUG: Comprimento de VITE_SUPABASE_ANON_KEY:", supabaseKey?.length);
-
-
 let client: SupabaseClient;
 
 // Verifique se as chaves estão presentes antes de criar o cliente
