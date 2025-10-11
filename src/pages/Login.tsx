@@ -7,7 +7,7 @@ import { supabaseUrl, supabaseKey } from "@/integrations/supabase/client"; // Im
 const Login = () => {
   const navigate = useNavigate();
   const session = useSession();
-  const [supabaseConfigError, setSupabaseConfigError] = useState<string | null>(null);
+  // Removido o estado supabaseConfigError, pois a depuração visual não é mais necessária aqui.
 
   useEffect(() => {
     if (session) {
@@ -15,16 +15,7 @@ const Login = () => {
     }
   }, [session, navigate]);
 
-  useEffect(() => {
-    // Esta verificação agora usa as variáveis exportadas diretamente
-    if (!supabaseUrl || !supabaseKey) {
-      setSupabaseConfigError(
-        "As variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não foram definidas. O aplicativo pode não funcionar corretamente."
-      );
-    } else {
-      setSupabaseConfigError(null);
-    }
-  }, []);
+  // Removido o useEffect que definia supabaseConfigError, pois a depuração visual não é mais necessária aqui.
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -41,23 +32,7 @@ const Login = () => {
           </p>
         </div>
         
-        {/* Este bloco agora sempre será exibido para depuração na tela de login */}
-        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-left" role="alert">
-          <strong className="font-bold">Status da Configuração do Supabase:</strong>
-          <span className="block sm:inline"> {supabaseConfigError || "Variáveis de ambiente do Supabase lidas."}</span>
-          <p className="text-sm mt-2">
-            <strong className="font-bold">Valores lidos:</strong>
-            <br />
-            URL: <span className="font-mono break-all">{supabaseUrl || "Não definida"}</span>
-            <br />
-            Key (completa para depuração): <span className="font-mono break-all">{supabaseKey || "Não definida"}</span>
-          </p>
-          {supabaseConfigError && (
-            <p className="text-sm mt-2 text-red-700">
-              Por favor, verifique seu arquivo `.env` e certifique-se de que as chaves do Supabase estão configuradas corretamente.
-            </p>
-          )}
-        </div>
+        {/* O bloco de depuração foi removido daqui. */}
 
         <div className="mt-8">
           <LoginForm />
