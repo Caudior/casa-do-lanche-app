@@ -5,7 +5,7 @@ export const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Adicionando logs para verificar se as variáveis de ambiente estão sendo lidas
 console.log('Supabase URL lida do .env:', supabaseUrl);
-console.log('Supabase Key lida do .env (últimos 5 caracteres):', supabaseKey ? '*****' + supabaseKey.substring(supabaseKey.length - 5) : 'Não definida');
+console.log('Supabase Key lida do .env (completa):', supabaseKey); // Log da chave completa aqui
 
 // Sempre cria uma instância do cliente Supabase.
 // Se as chaves estiverem ausentes, o Supabase.js ainda criará um objeto,
