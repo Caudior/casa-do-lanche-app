@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@supabase/auth-helpers-react";
 import { v4 as uuidv4 } from 'uuid';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface MenuItem {
   id: string;
@@ -27,6 +30,10 @@ const Menu = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string | null>(null);
+
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [itemToOrder, setItemToOrder] = useState<MenuItem | null>(null);
+  const [orderQuantity, setOrderQuantity] = useState(1); // Default quantity
 
   useEffect(() => {
     fetchMenuItems();
@@ -73,7 +80,24 @@ const Menu = () => {
     setLoading(false);
   };
 
-  const handlePlaceOrder = async (item: MenuItem) => {
+  const handleOpenOrderDialog = (item: MenuItem) => {
+    setItemToOrder(item);
+    setOrderQuantity(1); // Reset quantity when opening dialog
+    setIsOrderDialogOpen(true);
+  };
+
+  const confirmOrder = async () => {
+    if (!itemToOrder) return;
+
+    if (orderQuantity <= 0) {
+      toast({
+        title: "Erro",
+        description: "A quantidade deve ser maior que zero.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!session?.user) {
       toast({
         title: "Erro",
@@ -85,16 +109,15 @@ const Menu = () => {
     }
 
     const orderId = uuidv4();
-    const quantity = 1; // Por enquanto, quantidade fixa em 1
-    const total = item.preco * quantity;
+    const total = itemToOrder.preco * orderQuantity;
     const orderDate = new Date().toISOString();
 
     const { error: insertError } = await supabase.from("pedidos").insert({
       id: orderId,
       usuario_id: session.user.id,
-      cardapio_id: item.id,
-      quantidade: quantity.toString(), // Converte para string conforme o schema atual
-      total: total.toFixed(2).toString(), // Converte para string conforme o schema atual
+      cardapio_id: itemToOrder.id,
+      quantidade: orderQuantity, // Agora diretamente um número
+      total: parseFloat(total.toFixed(2)), // Garante 2 casas decimais e tipo numérico
       data_pedido: orderDate,
       status: "Pendente",
     });
@@ -110,7 +133,7 @@ const Menu = () => {
 
     toast({
       title: "Pedido Realizado!",
-      description: `"${item.nome}" adicionado ao seu pedido.`,
+      description: `"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`,
     });
 
     // Abrir WhatsApp com a mensagem pré-preenchida
@@ -118,11 +141,15 @@ const Menu = () => {
     const ownerName = "CLAUDIO RODRIGUES"; 
     const clientName = userName || "Cliente";
 
-    const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmo ter comprado o lanche ${item.nome} como mostra a mensagem.`;
+    const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmou ter comprado ${orderQuantity}x ${itemToOrder.nome} como mostra a mensagem.`;
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/${ownerPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+
+    setIsOrderDialogOpen(false); // Fecha o diálogo após o pedido
+    setItemToOrder(null);
+    setOrderQuantity(1);
   };
 
   return (
@@ -160,13 +187,56 @@ const Menu = () => {
                   <p className="text-2xl font-semibold text-primary">R$ {item.preco.toFixed(2)}</p>
                 </CardContent>
                 <CardFooter>
-                  <Button onClick={() => handlePlaceOrder(item)} className="w-full bg-primary hover:bg-primary/90">Adicionar ao Pedido</Button>
+                  <Button onClick={() => handleOpenOrderDialog(item)} className="w-full bg-primary hover:bg-primary/90">Adicionar ao Pedido</Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         )}
       </div>
+
+      {/* Diálogo de Confirmação de Pedido */}
+      <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-card text-foreground">
+          <DialogHeader>
+            <DialogTitle>Confirmar Pedido</DialogTitle>
+            <DialogDescription>
+              Confirme a quantidade para "{itemToOrder?.nome}"
+            </DialogDescription>
+          </DialogHeader>
+          {itemToOrder && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="item-name" className="text-right">Item</Label>
+                <Input id="item-name" value={itemToOrder.nome} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="item-price" className="text-right">Preço Unitário</Label>
+                <Input id="item-price" value={`R$ ${itemToOrder.preco.toFixed(2).replace('.', ',')}`} readOnly className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="quantity" className="text-right">Quantidade</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={orderQuantity}
+                  onChange={(e) => setOrderQuantity(parseInt(e.target.value) || 1)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4 font-bold text-lg">
+                <Label className="text-right">Total</Label>
+                <span className="col-span-3">R$ {(itemToOrder.preco * orderQuantity).toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={confirmOrder} className="bg-primary hover:bg-primary/90">Confirmar Pedido</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

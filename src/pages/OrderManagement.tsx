@@ -12,7 +12,7 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Importar Card
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface Order {
   id: string;
@@ -76,7 +76,7 @@ const OrderManagement = () => {
         id: order.id,
         usuario_id: order.usuario_id,
         cardapio_id: order.cardapio_id,
-        quantidade: parseFloat(order.quantidade),
+        quantidade: parseFloat(order.quantidade), // Mantido parseFloat para robustez
         total: parseFloat(order.total),
         status: order.status,
         data_pedido: order.data_pedido,
@@ -164,7 +164,7 @@ const OrderManagement = () => {
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-          <Label htmlFor="date-filter" className="text-foreground">Filtrar por Data:</Label>
+          <Label htmlFor="date-filter" className="block text-sm font-medium text-foreground">Filtrar por Data:</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button

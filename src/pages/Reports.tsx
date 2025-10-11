@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom"; // Corrigido para 'from'
+import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Share2 } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { generateClientReportPdf } from "@/utils/pdfGenerator"; // Importar o utilitário de PDF
+import { generateClientReportPdf } from "@/utils/pdfGenerator";
 
 interface Order {
   id: string;
@@ -39,7 +39,7 @@ interface ClientReport {
   userId: string;
   userName: string;
   userPhone: string;
-  userSector: string; // Adicionado o setor do usuário
+  userSector: string;
   totalSpent: number;
   numOrders: number;
   orders: Order[];
@@ -117,7 +117,7 @@ const Reports = () => {
         clientReport.orders.push({
           ...order,
           item_nome: order.cardapio?.nome || "Item Desconhecido",
-          quantidade: parseFloat(order.quantidade),
+          quantidade: parseFloat(order.quantidade), // Mantido parseFloat para robustez
           total: parseFloat(order.total),
         });
       });
