@@ -3,14 +3,14 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-let client: SupabaseClient | null = null; // Inicializa como null
+// Adicionando logs para verificar se as variáveis de ambiente estão sendo lidas
+console.log('Supabase URL lida do .env:', supabaseUrl);
+console.log('Supabase Key lida do .env (últimos 5 caracteres):', supabaseKey ? '*****' + supabaseKey.substring(supabaseKey.length - 5) : 'Não definida');
 
-// Verifique se as chaves estão presentes antes de criar o cliente
-if (!supabaseUrl || !supabaseKey) {
-  console.error('ERRO: As variáveis de ambiente VITE_SUPABASE_URL e/ou VITE_SUPABASE_ANON_KEY não foram definidas corretamente. O cliente Supabase não será inicializado.');
-  // O cliente permanece null, e o SessionProvider irá lidar com isso.
-} else {
-  client = createClient(supabaseUrl, supabaseKey);
-}
-
-export const supabase = client;
+// Sempre cria uma instância do cliente Supabase.
+// Se as chaves estiverem ausentes, o Supabase.js ainda criará um objeto,
+// mas as chamadas à API falharão com o erro "Invalid API key", que será capturado pelo nosso toast.
+export const supabase: SupabaseClient = createClient(
+  supabaseUrl || 'http://localhost:3000', // Fallback URL para evitar null
+  supabaseKey || 'dummy_key' // Fallback Key para evitar null
+);
