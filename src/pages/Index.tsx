@@ -33,10 +33,11 @@ const Index = () => {
         <p className="text-xl text-muted-foreground mb-8">
           Seu lugar favorito para os melhores lanches!
         </p>
-        {(supabaseConfigError || !supabaseUrl || !supabaseKey) && ( // Exibe o alerta se houver erro ou chaves ausentes
+        {/* O alerta de depuração foi movido para a página de Login */}
+        {supabaseConfigError && ( 
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-left" role="alert">
             <strong className="font-bold">Erro de Configuração do Supabase:</strong>
-            <span className="block sm:inline"> {supabaseConfigError || "Variáveis de ambiente do Supabase não configuradas corretamente."}</span>
+            <span className="block sm:inline"> {supabaseConfigError}</span>
             <p className="text-sm mt-2">
               Por favor, verifique seu arquivo `.env` e certifique-se de que as chaves do Supabase estão configuradas.
             </p>
