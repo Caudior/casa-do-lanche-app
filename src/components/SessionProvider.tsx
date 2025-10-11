@@ -9,6 +9,12 @@ interface SessionProviderProps {
 }
 
 const SessionProvider = ({ children }: SessionProviderProps) => {
+  if (!supabase) {
+    // Se o cliente Supabase não foi inicializado (devido a variáveis de ambiente ausentes),
+    // renderiza os filhos diretamente para permitir que o aplicativo inicie e exiba a mensagem de erro.
+    console.warn("Supabase client is not initialized. Functionality requiring Supabase will not work.");
+    return <>{children}</>;
+  }
   return (
     <SessionContextProvider supabaseClient={supabase}>
       {children}
