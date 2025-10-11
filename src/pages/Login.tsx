@@ -50,7 +50,7 @@ const Login = () => {
             <br />
             URL: <span className="font-mono break-all">{supabaseUrl || "Não definida"}</span>
             <br />
-            Key (últimos 5 chars): <span className="font-mono">{supabaseKey ? '*****' + supabaseKey.substring(supabaseKey.length - 5) : "Não definida"}</span>
+            Key (completa para depuração): <span className="font-mono break-all">{supabaseKey || "Não definida"}</span>
           </p>
           {supabaseConfigError && (
             <p className="text-sm mt-2 text-red-700">
