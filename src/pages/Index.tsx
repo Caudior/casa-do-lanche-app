@@ -2,7 +2,8 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect, useState } from "react"; // Import useState
+import { useEffect, useState } from "react";
+import { supabaseUrl, supabaseKey } from "@/integrations/supabase/client"; // Importando as variáveis exportadas
 
 const Index = () => {
   const navigate = useNavigate();
@@ -10,21 +11,15 @@ const Index = () => {
   const [supabaseConfigError, setSupabaseConfigError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkSupabaseConfig = () => {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseKey) {
-        setSupabaseConfigError(
-          "As variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não foram definidas. O aplicativo pode não funcionar corretamente."
-        );
-      } else {
-        setSupabaseConfigError(null);
-      }
-    };
-
-    checkSupabaseConfig();
-  }, []);
+    // Esta verificação agora usa as variáveis exportadas diretamente
+    if (!supabaseUrl || !supabaseKey) {
+      setSupabaseConfigError(
+        "As variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não foram definidas. O aplicativo pode não funcionar corretamente."
+      );
+    } else {
+      setSupabaseConfigError(null);
+    }
+  }, []); // As dependências são constantes, então o array pode ser vazio
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
@@ -38,11 +33,20 @@ const Index = () => {
         <p className="text-xl text-muted-foreground mb-8">
           Seu lugar favorito para os melhores lanches!
         </p>
-        {supabaseConfigError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong className="font-bold">Erro de Configuração:</strong>
-            <span className="block sm:inline"> {supabaseConfigError}</span>
-            <p className="text-sm mt-2">Por favor, verifique seu arquivo `.env` e certifique-se de que as chaves do Supabase estão configuradas.</p>
+        {(supabaseConfigError || !supabaseUrl || !supabaseKey) && ( // Exibe o alerta se houver erro ou chaves ausentes
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-left" role="alert">
+            <strong className="font-bold">Erro de Configuração do Supabase:</strong>
+            <span className="block sm:inline"> {supabaseConfigError || "Variáveis de ambiente do Supabase não configuradas corretamente."}</span>
+            <p className="text-sm mt-2">
+              Por favor, verifique seu arquivo `.env` e certifique-se de que as chaves do Supabase estão configuradas.
+            </p>
+            <p className="text-sm mt-2">
+              <strong className="font-bold">Valores lidos:</strong>
+              <br />
+              URL: <span className="font-mono break-all">{supabaseUrl || "Não definida"}</span>
+              <br />
+              Key (últimos 5 chars): <span className="font-mono">{supabaseKey ? '*****' + supabaseKey.substring(supabaseKey.length - 5) : "Não definida"}</span>
+            </p>
           </div>
         )}
         <div className="space-x-4">
