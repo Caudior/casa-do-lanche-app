@@ -25,3 +25,6 @@ dist-ssr
 
 # Ignore BitTorrentHelper lock file causing permission issues
 /AppData/Local/BitTorrentHelper/ledger.bt.co.lock
+
+# Supabase environment variables
+.env
