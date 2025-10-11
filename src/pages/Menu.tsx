@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Minus, Plus } from "lucide-react"; // Importando ícones de mais e menos
 
 interface MenuItem {
   id: string;
@@ -84,6 +85,14 @@ const Menu = () => {
     setItemToOrder(item);
     setOrderQuantity(1); // Reset quantity when opening dialog
     setIsOrderDialogOpen(true);
+  };
+
+  const handleDecreaseQuantity = () => {
+    setOrderQuantity((prev) => Math.max(1, prev - 1)); // Garante que a quantidade mínima é 1
+  };
+
+  const handleIncreaseQuantity = () => {
+    setOrderQuantity((prev) => prev + 1);
   };
 
   const confirmOrder = async () => {
@@ -216,14 +225,32 @@ const Menu = () => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="quantity" className="text-right">Quantidade</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  value={orderQuantity}
-                  onChange={(e) => setOrderQuantity(parseInt(e.target.value) || 1)}
-                  className="col-span-3"
-                />
+                <div className="col-span-3 flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleDecreaseQuantity}
+                    disabled={orderQuantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    id="quantity"
+                    type="text" // Alterado para text para evitar teclado numérico em mobile e controlar via botões
+                    readOnly
+                    value={orderQuantity}
+                    className="w-16 text-center"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleIncreaseQuantity}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4 font-bold text-lg">
                 <Label className="text-right">Total</Label>
