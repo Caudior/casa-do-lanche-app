@@ -15,6 +15,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import LogoutButton from "@/components/LogoutButton"; // Importar o LogoutButton
 
 interface ClientOrder {
   id: string;
@@ -110,9 +111,12 @@ const ClientReports = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-foreground">Meus Relatórios de Pedidos</h1>
-          <Button onClick={() => navigate("/menu")} variant="outline">
-            Voltar para o Cardápio
-          </Button>
+          <div className="flex items-center space-x-4"> {/* Adicionado um div para agrupar os botões */}
+            <Button onClick={() => navigate("/menu")} variant="outline">
+              Voltar para o Cardápio
+            </Button>
+            <LogoutButton /> {/* Botão de Logout adicionado aqui */}
+          </div>
         </div>
 
         <Card className="mb-6">
