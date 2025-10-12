@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Trash2 } from "lucide-react"; // Importar Trash2
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -111,6 +111,33 @@ const OrderManagement = () => {
     setLoading(false);
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este pedido? Esta ação é irreversível.")) {
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase
+      .from("pedidos")
+      .delete()
+      .eq("id", orderId);
+
+    if (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir pedido: " + error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sucesso",
+        description: "Pedido excluído com sucesso.",
+      });
+      fetchOrders(date); // Recarrega os pedidos para refletir a exclusão
+    }
+    setLoading(false);
+  };
+
   if (isLoadingRole) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Carregando...</div>;
   }
@@ -206,6 +233,7 @@ const OrderManagement = () => {
                   <TableHead className="min-w-[100px]">Total</TableHead>
                   <TableHead className="min-w-[100px]">Status</TableHead>
                   <TableHead className="min-w-[150px]">Data do Pedido</TableHead>
+                  <TableHead className="text-right min-w-[80px]">Ações</TableHead> {/* Nova coluna para ações */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -218,6 +246,15 @@ const OrderManagement = () => {
                     <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
                     <TableCell className="whitespace-nowrap">{order.status}</TableCell>
                     <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteOrder(order.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
