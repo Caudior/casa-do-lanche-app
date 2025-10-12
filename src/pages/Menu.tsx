@@ -149,8 +149,9 @@ const Menu = () => {
     const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues
     const ownerName = "CLAUDIO RODRIGUES"; 
     const clientName = userName || "Cliente";
+    const formattedTotal = total.toFixed(2).replace('.', ','); // Formata o total para exibição
 
-    const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmou ter comprado ${orderQuantity}x ${itemToOrder.nome} como mostra a mensagem.`;
+    const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmou ter comprado ${orderQuantity}x *${itemToOrder.nome}* no valor total de *R$ ${formattedTotal}* como mostra a mensagem.`;
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/${ownerPhoneNumber}?text=${encodedMessage}`;
     
