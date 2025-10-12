@@ -26,10 +26,10 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Painel Administrativo</h1>
-          <div className="flex items-center space-x-4">
-            <Button onClick={() => navigate("/menu")} variant="outline">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Painel Administrativo</h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button onClick={() => navigate("/menu")} variant="outline" className="w-full sm:w-auto">
               Ver Cardápio
             </Button>
             <LogoutButton />

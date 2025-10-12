@@ -165,19 +165,19 @@ const Menu = () => {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Nosso Cardápio</h1>
-          <div className="flex items-center space-x-4">
-            <Button onClick={() => navigate("/")} variant="outline">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Nosso Cardápio</h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button onClick={() => navigate("/")} variant="outline" className="w-full sm:w-auto">
               Voltar para o Início
             </Button>
             {!isLoadingRole && userRole === "admin" && (
-              <Button onClick={() => navigate("/admin")} variant="ghost" className="text-accent hover:text-accent-foreground">
+              <Button onClick={() => navigate("/admin")} variant="ghost" className="text-accent hover:text-accent-foreground w-full sm:w-auto">
                 Painel Admin
               </Button>
             )}
             {!isLoadingRole && session?.user && ( // Mostrar para usuários logados (clientes ou admins)
-              <Button onClick={() => navigate("/my-reports")} variant="destructive"> {/* Alterado para variant="destructive" */}
+              <Button onClick={() => navigate("/my-reports")} variant="destructive" className="w-full sm:w-auto"> {/* Alterado para variant="destructive" */}
                 Histórico de Pedidos
               </Button>
             )}
@@ -221,17 +221,17 @@ const Menu = () => {
           </DialogHeader>
           {itemToOrder && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="item-name" className="text-right">Item</Label>
-                <Input id="item-name" value={itemToOrder.nome} readOnly className="col-span-3" />
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                <Label htmlFor="item-name" className="text-left sm:text-right">Item</Label>
+                <Input id="item-name" value={itemToOrder.nome} readOnly className="col-span-1 sm:col-span-3" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="item-price" className="text-right">Preço Unitário</Label>
-                <Input id="item-price" value={`R$ ${itemToOrder.preco.toFixed(2).replace('.', ',')}`} readOnly className="col-span-3" />
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                <Label htmlFor="item-price" className="text-left sm:text-right">Preço Unitário</Label>
+                <Input id="item-price" value={`R$ ${itemToOrder.preco.toFixed(2).replace('.', ',')}`} readOnly className="col-span-1 sm:col-span-3" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="quantity" className="text-right">Quantidade</Label>
-                <div className="col-span-3 flex items-center space-x-2">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                <Label htmlFor="quantity" className="text-left sm:text-right">Quantidade</Label>
+                <div className="col-span-1 sm:col-span-3 flex items-center space-x-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -258,15 +258,15 @@ const Menu = () => {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4 font-bold text-lg">
-                <Label className="text-right">Total</Label>
-                <span className="col-span-3">R$ {(itemToOrder.preco * orderQuantity).toFixed(2).replace('.', ',')}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 font-bold text-lg">
+                <Label className="text-left sm:text-right">Total</Label>
+                <span className="col-span-1 sm:col-span-3">R$ {(itemToOrder.preco * orderQuantity).toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={confirmOrder} className="bg-primary hover:bg-primary/90">Confirmar Pedido</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-end">
+            <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+            <Button onClick={confirmOrder} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">Confirmar Pedido</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

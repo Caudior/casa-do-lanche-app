@@ -109,10 +109,10 @@ const ClientReports = () => {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Meus Relatórios de Pedidos</h1>
-          <div className="flex items-center space-x-4"> {/* Adicionado um div para agrupar os botões */}
-            <Button onClick={() => navigate("/menu")} variant="outline">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Meus Relatórios de Pedidos</h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4"> {/* Adicionado um div para agrupar os botões */}
+            <Button onClick={() => navigate("/menu")} variant="outline" className="w-full sm:w-auto">
               Voltar para o Cardápio
             </Button>
             <LogoutButton /> {/* Botão de Logout adicionado aqui */}
@@ -186,21 +186,21 @@ const ClientReports = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Quantidade</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Data do Pedido</TableHead>
+                      <TableHead className="min-w-[120px]">Item</TableHead>
+                      <TableHead className="min-w-[80px]">Quantidade</TableHead>
+                      <TableHead className="min-w-[100px]">Total</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[150px]">Data do Pedido</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {userOrders.map((order) => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.item_nome}</TableCell>
+                        <TableCell className="font-medium whitespace-nowrap">{order.item_nome}</TableCell>
                         <TableCell>{order.quantidade}</TableCell>
-                        <TableCell>R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
-                        <TableCell>{order.status}</TableCell>
-                        <TableCell>{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                        <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
+                        <TableCell className="whitespace-nowrap">{order.status}</TableCell>
+                        <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

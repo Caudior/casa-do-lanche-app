@@ -154,15 +154,15 @@ const MenuManagement = () => {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Gerenciar Cardápio</h1>
-          <div className="flex items-center space-x-4">
-            <Button onClick={() => navigate("/admin")} variant="outline">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Gerenciar Cardápio</h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
               Voltar para o Painel
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => setCurrentMenuItem(null)} className="bg-primary hover:bg-primary/90">
+                <Button onClick={() => setCurrentMenuItem(null)} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Item
                 </Button>
               </DialogTrigger>
@@ -174,8 +174,8 @@ const MenuManagement = () => {
                   </CardDescription>
                 </DialogHeader>
                 <form onSubmit={handleSaveMenuItem} className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="nome" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="nome" className="text-left sm:text-right">
                       Nome
                     </Label>
                     <Input
@@ -183,12 +183,12 @@ const MenuManagement = () => {
                       name="nome"
                       value={currentMenuItem?.nome || ""}
                       onChange={(e) => setCurrentMenuItem({ ...currentMenuItem, nome: e.target.value })}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="descricao" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="descricao" className="text-left sm:text-right">
                       Descrição
                     </Label>
                     <Textarea
@@ -196,12 +196,12 @@ const MenuManagement = () => {
                       name="descricao"
                       value={currentMenuItem?.descricao || ""}
                       onChange={(e) => setCurrentMenuItem({ ...currentMenuItem, descricao: e.target.value })}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="preco" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="preco" className="text-left sm:text-right">
                       Preço
                     </Label>
                     <Input
@@ -211,12 +211,12 @@ const MenuManagement = () => {
                       step="0.01"
                       value={currentMenuItem?.preco || ""}
                       onChange={(e) => setCurrentMenuItem({ ...currentMenuItem, preco: parseFloat(e.target.value) })}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="imagem_url" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="imagem_url" className="text-left sm:text-right">
                       URL da Imagem
                     </Label>
                     <Input
@@ -224,12 +224,12 @@ const MenuManagement = () => {
                       name="imagem_url"
                       value={currentMenuItem?.imagem_url || ""}
                       onChange={(e) => setCurrentMenuItem({ ...currentMenuItem, imagem_url: e.target.value })}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                       required
                     />
                   </div>
                   <DialogFooter>
-                    <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90">
+                    <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90">
                       {loading ? "Salvando..." : "Salvar Item"}
                     </Button>
                   </DialogFooter>
@@ -244,49 +244,51 @@ const MenuManagement = () => {
         ) : menuItems.length === 0 ? (
           <div className="text-center text-muted-foreground">Nenhum item no cardápio. Adicione um novo!</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Preço</TableHead>
-                <TableHead>Imagem</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {menuItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.nome}</TableCell>
-                  <TableCell>{item.descricao}</TableCell>
-                  <TableCell>R$ {item.preco.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <img src={item.imagem_url} alt={item.nome} className="w-16 h-16 object-cover rounded-md" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setCurrentMenuItem(item);
-                        setIsDialogOpen(true);
-                      }}
-                      className="mr-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteMenuItem(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Preço</TableHead>
+                  <TableHead>Imagem</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {menuItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.nome}</TableCell>
+                    <TableCell>{item.descricao}</TableCell>
+                    <TableCell>R$ {item.preco.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <img src={item.imagem_url} alt={item.nome} className="w-16 h-16 object-cover rounded-md" />
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentMenuItem(item);
+                          setIsDialogOpen(true);
+                        }}
+                        className="mr-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteMenuItem(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </div>

@@ -173,9 +173,9 @@ const Reports = () => {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Relatórios Mensais por Cliente</h1>
-          <Button onClick={() => navigate("/admin")} variant="outline">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Relatórios Mensais por Cliente</h1>
+          <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
             Voltar para o Painel
           </Button>
         </div>
@@ -233,8 +233,8 @@ const Reports = () => {
               <Accordion type="single" collapsible className="w-full">
                 {clientReports.map((client, index) => (
                   <AccordionItem key={client.userId} value={client.userId} className="border-b border-border">
-                    <AccordionTrigger className="flex items-center justify-between p-4 hover:bg-muted/50">
-                      <div className="flex items-center gap-3">
+                    <AccordionTrigger className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 hover:bg-muted/50 text-left">
+                      <div className="flex items-center gap-3 mb-2 sm:mb-0">
                         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-secondary-foreground font-bold">
                           {index + 1}
                         </span>
@@ -243,7 +243,7 @@ const Reports = () => {
                           <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                         <span className="text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
                         <Button
                           variant="default"
@@ -252,7 +252,7 @@ const Reports = () => {
                             e.stopPropagation(); // Evita que o accordion feche/abra
                             handleShareReport(client);
                           }}
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
                         >
                           <Share2 className="h-4 w-4 mr-2" /> Compartilhar
                         </Button>
@@ -260,26 +260,28 @@ const Reports = () => {
                     </AccordionTrigger>
                     <AccordionContent className="p-4 bg-muted/20">
                       <h3 className="font-semibold text-foreground mb-2">Pedidos de {client.userName}:</h3>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Item</TableHead>
-                            <TableHead>Quantidade</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead>Data</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {client.orders.map((order) => (
-                            <TableRow key={order.id}>
-                              <TableCell>{order.item_nome}</TableCell>
-                              <TableCell>{order.quantidade}</TableCell>
-                              <TableCell>R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
-                              <TableCell>{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="min-w-[120px]">Item</TableHead>
+                              <TableHead className="min-w-[80px]">Quantidade</TableHead>
+                              <TableHead className="min-w-[100px]">Total</TableHead>
+                              <TableHead className="min-w-[150px]">Data</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {client.orders.map((order) => (
+                              <TableRow key={order.id}>
+                                <TableCell className="whitespace-nowrap">{order.item_nome}</TableCell>
+                                <TableCell>{order.quantidade}</TableCell>
+                                <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
+                                <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
