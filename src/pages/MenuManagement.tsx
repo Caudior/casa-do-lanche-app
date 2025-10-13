@@ -5,6 +5,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,17 +34,19 @@ interface MenuItem {
 
 const MenuManagement = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
+  const { userRole, isLoadingRole, userProfile } = useUserRole();
   const { toast } = useToast();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentMenuItem, setCurrentMenuItem] = useState<Partial<MenuItem> | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
-      navigate("/"); // Redirecionar não-administradores
+      navigate("/");
     } else if (userRole === "admin") {
       fetchMenuItems();
     }
@@ -117,15 +130,14 @@ const MenuManagement = () => {
     setLoading(false);
   };
 
-  const handleDeleteMenuItem = async (id: string) => {
-    if (!window.confirm("Tem certeza que deseja excluir este item do cardápio?")) {
-      return;
-    }
+  const confirmDeleteMenuItem = async () => {
+    if (!itemToDeleteId) return;
+
     setLoading(true);
     const { error } = await supabase
       .from("cardapio")
       .delete()
-      .eq("id", id);
+      .eq("id", itemToDeleteId);
 
     if (error) {
       toast({
@@ -141,6 +153,8 @@ const MenuManagement = () => {
       fetchMenuItems();
     }
     setLoading(false);
+    setIsDeleteDialogOpen(false);
+    setItemToDeleteId(null);
   };
 
   if (isLoadingRole) {
@@ -148,7 +162,7 @@ const MenuManagement = () => {
   }
 
   if (userRole !== "admin") {
-    return null; // Ou uma mensagem de "Acesso Negado"
+    return null;
   }
 
   return (
@@ -278,13 +292,34 @@ const MenuManagement = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteMenuItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog open={isDeleteDialogOpen && itemToDeleteId === item.id} onOpenChange={setIsDeleteDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              setItemToDeleteId(item.id);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-card text-foreground">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. Isso excluirá permanentemente este item do cardápio.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setItemToDeleteId(null)}>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmDeleteMenuItem} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}

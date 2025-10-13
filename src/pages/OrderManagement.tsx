@@ -13,6 +13,17 @@ import { CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Order {
   id: string;
@@ -29,18 +40,20 @@ interface Order {
 
 const OrderManagement = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
+  const { userRole, isLoadingRole, userProfile } = useUserRole();
   const { toast } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState<Date | undefined>(new Date()); // Default to current day
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [dailyTotal, setDailyTotal] = useState<number>(0);
   const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
-      navigate("/"); // Redirecionar não-administradores
+      navigate("/");
     } else if (userRole === "admin") {
       fetchOrders(date);
     }
@@ -48,9 +61,8 @@ const OrderManagement = () => {
 
   const fetchOrders = async (selectedDate?: Date) => {
     setLoading(true);
-    const today = selectedDate || new Date(); // Usa selectedDate ou o dia atual para a visualização diária
+    const today = selectedDate || new Date();
 
-    // --- Buscar pedidos para o dia selecionado (para a tabela e total diário) ---
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(today);
@@ -89,10 +101,9 @@ const OrderManagement = () => {
       setDailyTotal(currentDailyTotal);
     }
 
-    // --- Buscar pedidos para o mês corrente (para o total mensal) ---
     const currentMonth = new Date();
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0); // Último dia do mês corrente
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
     const { data: monthlyOrdersData, error: monthlyError } = await supabase
       .from("pedidos")
@@ -111,16 +122,14 @@ const OrderManagement = () => {
     setLoading(false);
   };
 
-  const handleDeleteOrder = async (orderId: string) => {
-    if (!window.confirm("Tem certeza que deseja excluir este pedido? Esta ação é irreversível.")) {
-      return;
-    }
+  const confirmDeleteOrder = async () => {
+    if (!orderToDeleteId) return;
 
     setLoading(true);
     const { error } = await supabase
       .from("pedidos")
       .delete()
-      .eq("id", orderId);
+      .eq("id", orderToDeleteId);
 
     if (error) {
       toast({
@@ -133,9 +142,11 @@ const OrderManagement = () => {
         title: "Sucesso",
         description: "Pedido excluído com sucesso.",
       });
-      fetchOrders(date); // Recarrega os pedidos para refletir a exclusão
+      fetchOrders(date);
     }
     setLoading(false);
+    setIsDeleteDialogOpen(false);
+    setOrderToDeleteId(null);
   };
 
   if (isLoadingRole) {
@@ -143,7 +154,7 @@ const OrderManagement = () => {
   }
 
   if (userRole !== "admin") {
-    return null; // Ou uma mensagem de "Acesso Negado"
+    return null;
   }
 
   return (
@@ -249,13 +260,34 @@ const OrderManagement = () => {
                     <TableCell className="whitespace-nowrap">{order.status}</TableCell>
                     <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteOrder(order.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog open={isDeleteDialogOpen && orderToDeleteId === order.id} onOpenChange={setIsDeleteDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              setOrderToDeleteId(order.id);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-card text-foreground">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. Isso excluirá permanentemente este pedido.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setOrderToDeleteId(null)}>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmDeleteOrder} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
