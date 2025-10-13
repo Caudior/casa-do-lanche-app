@@ -24,13 +24,12 @@ interface MenuItem {
 
 const Menu = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole } = useUserRole();
+  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
   const { toast } = useToast();
   const session = useSession();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState<string | null>(null);
 
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [itemToOrder, setItemToOrder] = useState<MenuItem | null>(null);
@@ -39,26 +38,6 @@ const Menu = () => {
   useEffect(() => {
     fetchMenuItems();
   }, []);
-
-  useEffect(() => {
-    const fetchUserName = async () => {
-      if (session?.user) {
-        const { data, error } = await supabase
-          .from("usuario")
-          .select("nome")
-          .eq("id", session.user.id)
-          .single();
-
-        if (error) {
-          console.error("Erro ao buscar nome do usuário:", error.message);
-          setUserName(null);
-        } else if (data) {
-          setUserName(data.nome);
-        }
-      }
-    };
-    fetchUserName();
-  }, [session]);
 
   const fetchMenuItems = async () => {
     setLoading(true);
@@ -148,7 +127,7 @@ const Menu = () => {
     // Abrir WhatsApp com a mensagem pré-preenchida
     const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues
     const ownerName = "CLAUDIO RODRIGUES"; 
-    const clientName = userName || "Cliente";
+    const clientName = userProfile?.nome || "Cliente"; // Usando userProfile.nome
     const formattedTotal = total.toFixed(2).replace('.', ','); // Formata o total para exibição
 
     const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmou ter comprado ${orderQuantity}x *${itemToOrder.nome}* no valor total de *R$ ${formattedTotal}* como mostra a mensagem.`;
@@ -166,7 +145,9 @@ const Menu = () => {
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Nosso Cardápio</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Nosso Cardápio {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
+          </h1>
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <Button onClick={() => navigate("/")} variant="outline" className="w-full sm:w-auto">
               Voltar para o Início
@@ -177,7 +158,7 @@ const Menu = () => {
               </Button>
             )}
             {!isLoadingRole && session?.user && ( // Mostrar para usuários logados (clientes ou admins)
-              <Button onClick={() => navigate("/my-reports")} variant="destructive" className="w-full sm:w-auto"> {/* Alterado para variant="destructive" */}
+              <Button onClick={() => navigate("/my-reports")} variant="destructive" className="w-full sm:w-auto">
                 Histórico de Pedidos
               </Button>
             )}

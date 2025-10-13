@@ -4,37 +4,45 @@ import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = "admin" | "cliente" | null;
 
+interface UserProfile {
+  id: string;
+  nome: string;
+  telefone: string;
+  setor: string;
+  email: string;
+  tipo_usuario: UserRole;
+}
+
 export const useUserRole = () => {
   const session = useSession();
-  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoadingRole, setIsLoadingRole] = useState(true);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
+    const fetchUserProfile = async () => {
       setIsLoadingRole(true);
       if (session?.user) {
-        // Convertendo session.user.id para string para garantir compatibilidade com a coluna 'id' tipo TEXT
-        const userIdAsString = session.user.id as string; 
+        const userIdAsString = session.user.id as string;
         const { data, error } = await supabase
           .from("usuario")
-          .select("tipo_usuario")
+          .select("id, nome, telefone, setor, email, tipo_usuario")
           .eq("id", userIdAsString)
           .single();
 
         if (error) {
-          console.error("Error fetching user role:", error.message);
-          setUserRole(null);
+          console.error("Error fetching user profile:", error.message);
+          setUserProfile(null);
         } else if (data) {
-          setUserRole(data.tipo_usuario as UserRole);
+          setUserProfile(data as UserProfile);
         }
       } else {
-        setUserRole(null);
+        setUserProfile(null);
       }
       setIsLoadingRole(false);
     };
 
-    fetchUserRole();
+    fetchUserProfile();
   }, [session]);
 
-  return { userRole, isLoadingRole };
+  return { userProfile, isLoadingRole, userRole: userProfile?.tipo_usuario };
 };

@@ -47,7 +47,7 @@ interface ClientReport {
 
 const Reports = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole } = useUserRole();
+  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
   const { toast } = useToast();
 
   const currentMonth = getMonth(new Date());
@@ -174,7 +174,9 @@ const Reports = () => {
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Relatórios Mensais por Cliente</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Relatórios Mensais por Cliente {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
+          </h1>
           <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
             Voltar para o Painel
           </Button>

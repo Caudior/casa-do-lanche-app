@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Trash2 } from "lucide-react"; // Importar Trash2
+import { CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -29,7 +29,7 @@ interface Order {
 
 const OrderManagement = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole } = useUserRole();
+  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
   const { toast } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -76,7 +76,7 @@ const OrderManagement = () => {
         id: order.id,
         usuario_id: order.usuario_id,
         cardapio_id: order.cardapio_id,
-        quantidade: parseFloat(order.quantidade), // Mantido parseFloat para robustez
+        quantidade: parseFloat(order.quantidade),
         total: parseFloat(order.total),
         status: order.status,
         data_pedido: order.data_pedido,
@@ -156,7 +156,9 @@ const OrderManagement = () => {
               alt="Casa do Lanche Logo" 
               className="w-12 h-auto sm:w-16 mr-4" 
             />
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Gerenciar Pedidos</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+              Gerenciar Pedidos {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
+            </h1>
           </div>
           <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
             Voltar para o Painel
@@ -233,7 +235,7 @@ const OrderManagement = () => {
                   <TableHead className="min-w-[100px]">Total</TableHead>
                   <TableHead className="min-w-[100px]">Status</TableHead>
                   <TableHead className="min-w-[150px]">Data do Pedido</TableHead>
-                  <TableHead className="text-right min-w-[80px]">Ações</TableHead> {/* Nova coluna para ações */}
+                  <TableHead className="text-right min-w-[80px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

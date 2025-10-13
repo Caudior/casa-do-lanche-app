@@ -15,7 +15,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import LogoutButton from "@/components/LogoutButton"; // Importar o LogoutButton
+import LogoutButton from "@/components/LogoutButton";
+import { useUserRole } from "@/hooks/useUserRole"; // Importar o hook useUserRole
 
 interface ClientOrder {
   id: string;
@@ -31,6 +32,7 @@ const ClientReports = () => {
   const navigate = useNavigate();
   const session = useSession();
   const { toast } = useToast();
+  const { userProfile } = useUserRole(); // Usando userProfile
 
   const currentMonth = getMonth(new Date());
   const currentYear = getYear(new Date());
@@ -110,12 +112,14 @@ const ClientReports = () => {
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Meus Relatórios de Pedidos</h1>
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4"> {/* Adicionado um div para agrupar os botões */}
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Meus Relatórios de Pedidos {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
+          </h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <Button onClick={() => navigate("/menu")} variant="outline" className="w-full sm:w-auto">
               Voltar para o Cardápio
             </Button>
-            <LogoutButton /> {/* Botão de Logout adicionado aqui */}
+            <LogoutButton />
           </div>
         </div>
 
