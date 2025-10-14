@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Trash2 } from "lucide-react";
+import { CalendarIcon, Trash2, Eye, EyeOff } from "lucide-react"; // Importando Eye e EyeOff
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -50,6 +50,8 @@ const OrderManagement = () => {
   const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
+  const [showDailyTotal, setShowDailyTotal] = useState(false); // Novo estado para visibilidade do total diário
+  const [showMonthlyTotal, setShowMonthlyTotal] = useState(false); // Novo estado para visibilidade do total mensal
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
@@ -183,7 +185,19 @@ const OrderManagement = () => {
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {dailyTotal.toFixed(2).replace('.', ',')}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-2xl font-bold">
+                  {showDailyTotal ? `R$ ${dailyTotal.toFixed(2).replace('.', ',')}` : "R$ *****"}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowDailyTotal(!showDailyTotal)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  {showDailyTotal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "Hoje"}
               </p>
@@ -195,7 +209,19 @@ const OrderManagement = () => {
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {monthlyTotal.toFixed(2).replace('.', ',')}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-2xl font-bold">
+                  {showMonthlyTotal ? `R$ ${monthlyTotal.toFixed(2).replace('.', ',')}` : "R$ *****"}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowMonthlyTotal(!showMonthlyTotal)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  {showMonthlyTotal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 {format(new Date(), "MMMM yyyy", { locale: ptBR })}
               </p>
