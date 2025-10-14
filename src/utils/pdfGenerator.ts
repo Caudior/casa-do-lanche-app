@@ -31,25 +31,45 @@ export const generateClientReportPdf = (
 ) => {
   const doc = new jsPDF();
 
+  // Adicionar o logo
+  const imgData = "/casa_do_lanche_logo_420.png"; // Caminho para o logo na pasta public
+  const imgWidth = 40; // Largura da imagem em mm
+  const imgHeight = 40; // Altura da imagem em mm (ajustar conforme proporção)
+  const imgX = 14; // Posição X
+  const imgY = 10; // Posição Y
+  doc.addImage(imgData, "PNG", imgX, imgY, imgWidth, imgHeight);
+
+  // Ajustar a posição inicial do texto após o logo
+  let currentY = imgY + imgHeight + 10; // Começa 10mm abaixo do logo
+
   // Título
   doc.setFontSize(18);
-  doc.text("Relatório Mensal de Pedidos", 14, 22);
+  doc.text("Relatório Mensal de Pedidos", 14, currentY);
+  currentY += 8;
   doc.setFontSize(12);
-  doc.text(`Período: ${monthName}/${year}`, 14, 30);
+  doc.text(`Período: ${monthName}/${year}`, 14, currentY);
+  currentY += 15;
 
   // Informações do Cliente
   doc.setFontSize(14);
-  doc.text("Dados do Cliente:", 14, 45);
+  doc.text("Dados do Cliente:", 14, currentY);
+  currentY += 8;
   doc.setFontSize(12);
-  doc.text(`Nome: ${clientReport.userName}`, 14, 53);
-  doc.text(`Telefone: ${clientReport.userPhone}`, 14, 60);
-  doc.text(`Setor: ${clientReport.userSector}`, 14, 67);
-  doc.text(`Total Gasto: R$ ${clientReport.totalSpent.toFixed(2).replace('.', ',')}`, 14, 74);
-  doc.text(`Número de Pedidos: ${clientReport.numOrders}`, 14, 81);
+  doc.text(`Nome: ${clientReport.userName}`, 14, currentY);
+  currentY += 7;
+  doc.text(`Telefone: ${clientReport.userPhone}`, 14, currentY);
+  currentY += 7;
+  doc.text(`Setor: ${clientReport.userSector}`, 14, currentY);
+  currentY += 7;
+  doc.text(`Total Gasto: R$ ${clientReport.totalSpent.toFixed(2).replace('.', ',')}`, 14, currentY);
+  currentY += 7;
+  doc.text(`Número de Pedidos: ${clientReport.numOrders}`, 14, currentY);
+  currentY += 15;
 
   // Tabela de Pedidos
   doc.setFontSize(14);
-  doc.text("Detalhes dos Pedidos:", 14, 96);
+  doc.text("Detalhes dos Pedidos:", 14, currentY);
+  currentY += 10;
 
   const tableColumn = ["Item", "Quantidade", "Total", "Data"];
   const tableRows: any[] = [];
@@ -65,7 +85,7 @@ export const generateClientReportPdf = (
   });
 
   (doc as any).autoTable(tableColumn, tableRows, {
-    startY: 105,
+    startY: currentY,
     headStyles: { fillColor: [56, 189, 248] }, // Cor de cabeçalho da tabela (azul claro)
     styles: { fontSize: 10, cellPadding: 3 },
     margin: { top: 10 },
