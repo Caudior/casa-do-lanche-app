@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatName } from "@/lib/utils"; // Importando formatName
 
 interface Order {
   id: string;
@@ -55,7 +56,7 @@ export const generateClientReportPdf = (
   doc.text("Dados do Cliente:", 14, currentY);
   currentY += 8;
   doc.setFontSize(12);
-  doc.text(`Nome: ${clientReport.userName}`, 14, currentY);
+  doc.text(`Nome: ${formatName(clientReport.userName)}`, 14, currentY); // Aplicando formatName aqui
   currentY += 7;
   doc.text(`Telefone: ${clientReport.userPhone}`, 14, currentY);
   currentY += 7;
@@ -91,5 +92,5 @@ export const generateClientReportPdf = (
     margin: { top: 10 },
   });
 
-  doc.save(`Relatorio_Pedidos_${clientReport.userName}_${monthName}_${year}.pdf`);
+  doc.save(`Relatorio_Pedidos_${formatName(clientReport.userName)}_${monthName}_${year}.pdf`); // Aplicando formatName no nome do arquivo
 };

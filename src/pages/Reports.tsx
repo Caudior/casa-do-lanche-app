@@ -23,6 +23,7 @@ import { Share2 } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateClientReportPdf } from "@/utils/pdfGenerator";
+import { formatName } from "@/lib/utils"; // Importando formatName
 
 interface Order {
   id: string;
@@ -147,7 +148,7 @@ const Reports = () => {
 
     // 2. Abrir WhatsApp com a mensagem de texto
     let message = `*Relatório Mensal de Pedidos - ${monthName}/${selectedYear}*\n\n`;
-    message += `*Cliente:* ${client.userName}\n`;
+    message += `*Cliente:* ${formatName(client.userName)}\n`; // Aplicando formatName aqui
     message += `*Telefone:* ${client.userPhone}\n`;
     message += `*Setor:* ${client.userSector}\n`;
     message += `*Total Gasto:* R$ ${client.totalSpent.toFixed(2).replace('.', ',')}\n`;
@@ -241,7 +242,7 @@ const Reports = () => {
                           {index + 1}
                         </span>
                         <div className="text-left">
-                          <p className="font-bold text-foreground">{client.userName}</p>
+                          <p className="font-bold text-foreground">{formatName(client.userName)}</p> {/* Aplicando formatName aqui */}
                           <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
                       </div>
@@ -261,7 +262,7 @@ const Reports = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-4 bg-muted/20">
-                      <h3 className="font-semibold text-foreground mb-2">Pedidos de {client.userName}:</h3>
+                      <h3 className="font-semibold text-foreground mb-2">Pedidos de {formatName(client.userName)}:</h3> {/* Aplicando formatName aqui */}
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
