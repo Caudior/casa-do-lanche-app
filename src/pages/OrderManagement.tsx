@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Trash2, Eye, EyeOff } from "lucide-react"; // Importando Eye e EyeOff
-import { cn } from "@/lib/utils";
+import { cn, formatName } from "@/lib/utils"; // Importando formatName
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
@@ -279,7 +279,7 @@ const OrderManagement = () => {
                 {orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium whitespace-nowrap">{order.item_nome}</TableCell>
-                    <TableCell className="whitespace-nowrap">{order.usuario_nome}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatName(order.usuario_nome)}</TableCell>
                     <TableCell className="whitespace-nowrap">{order.usuario_email}</TableCell>
                     <TableCell>{order.quantidade}</TableCell>
                     <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
