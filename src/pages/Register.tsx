@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,6 @@ const Register = () => {
     userType: "cliente" // Default user type
   });
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -50,21 +49,11 @@ const Register = () => {
       }
 
       if (data.user) {
-        // A inserção na tabela 'usuario' agora é tratada automaticamente por um gatilho do banco de dados (handle_new_user).
-        // Não é mais necessário inserir manualmente aqui.
-
-        toast({
-          title: "Sucesso!",
-          description: "Conta criada com sucesso. Por favor, verifique seu email.",
-        });
+        showSuccess("Conta criada com sucesso. Por favor, verifique seu email."); // Usando showSuccess
         navigate("/login");
       }
     } catch (error: any) {
-      toast({
-        title: "Erro!",
-        description: error.message || "Ocorreu um erro ao criar a conta.",
-        variant: "destructive",
-      });
+      showError(error.message || "Ocorreu um erro ao criar a conta."); // Usando showError
     } finally {
       setLoading(false);
     }

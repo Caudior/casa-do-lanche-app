@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -31,7 +31,6 @@ interface ClientOrder {
 const ClientReports = () => {
   const navigate = useNavigate();
   const session = useSession();
-  const { toast } = useToast();
   const { userProfile } = useUserRole(); // Usando userProfile
 
   const currentMonth = getMonth(new Date());
@@ -84,11 +83,7 @@ const ClientReports = () => {
       .order("data_pedido", { ascending: false });
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar seus pedidos: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao carregar seus pedidos: " + error.message); // Usando showError
       setUserOrders([]);
       setTotalSpentInPeriod(0);
     } else {

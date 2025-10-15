@@ -5,7 +5,7 @@ import LogoutButton from "@/components/LogoutButton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { useSession } from "@supabase/auth-helpers-react";
 import { v4 as uuidv4 } from 'uuid';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -25,7 +25,6 @@ interface MenuItem {
 const Menu = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
-  const { toast } = useToast();
   const session = useSession();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -48,11 +47,7 @@ const Menu = () => {
       .order("nome", { ascending: true });
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar itens do cardápio: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao carregar itens do cardápio: " + error.message); // Usando showError
       setMenuItems([]); // Limpar itens em caso de erro
     } else {
       setMenuItems(data as MenuItem[]);
@@ -78,20 +73,12 @@ const Menu = () => {
     if (!itemToOrder) return;
 
     if (orderQuantity <= 0) {
-      toast({
-        title: "Erro",
-        description: "A quantidade deve ser maior que zero.",
-        variant: "destructive",
-      });
+      showError("A quantidade deve ser maior que zero."); // Usando showError
       return;
     }
 
     if (!session?.user) {
-      toast({
-        title: "Erro",
-        description: "Você precisa estar logado para fazer um pedido.",
-        variant: "destructive",
-      });
+      showError("Você precisa estar logado para fazer um pedido."); // Usando showError
       navigate("/login");
       return;
     }
@@ -111,18 +98,11 @@ const Menu = () => {
     });
 
     if (insertError) {
-      toast({
-        title: "Erro ao fazer pedido",
-        description: insertError.message,
-        variant: "destructive",
-      });
+      showError("Erro ao fazer pedido: " + insertError.message); // Usando showError
       return;
     }
 
-    toast({
-      title: "Pedido Realizado!",
-      description: `"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`,
-    });
+    showSuccess(`"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`); // Usando showSuccess
 
     // Abrir WhatsApp com a mensagem pré-preenchida
     const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues

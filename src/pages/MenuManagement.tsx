@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
@@ -35,7 +35,6 @@ interface MenuItem {
 const MenuManagement = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole, userProfile } = useUserRole();
-  const { toast } = useToast();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,11 +59,7 @@ const MenuManagement = () => {
       .order("nome", { ascending: true });
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar itens do cardápio: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao carregar itens do cardápio: " + error.message); // Usando showError
     } else {
       setMenuItems(data as MenuItem[]);
     }
@@ -74,11 +69,7 @@ const MenuManagement = () => {
   const handleSaveMenuItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMenuItem?.nome || !currentMenuItem?.descricao || !currentMenuItem?.preco || !currentMenuItem?.imagem_url) {
-      toast({
-        title: "Erro",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive",
-      });
+      showError("Por favor, preencha todos os campos obrigatórios."); // Usando showError
       return;
     }
 
@@ -113,16 +104,9 @@ const MenuManagement = () => {
     }
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar item do cardápio: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao salvar item do cardápio: " + error.message); // Usando showError
     } else {
-      toast({
-        title: "Sucesso",
-        description: "Item do cardápio salvo com sucesso.",
-      });
+      showSuccess("Item do cardápio salvo com sucesso."); // Usando showSuccess
       setIsDialogOpen(false);
       setCurrentMenuItem(null);
       fetchMenuItems();
@@ -140,16 +124,9 @@ const MenuManagement = () => {
       .eq("id", itemToDeleteId);
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir item do cardápio: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao excluir item do cardápio: " + error.message); // Usando showError
     } else {
-      toast({
-        title: "Sucesso",
-        description: "Item do cardápio excluído com sucesso.",
-      });
+      showSuccess("Item do cardápio excluído com sucesso."); // Usando showSuccess
       fetchMenuItems();
     }
     setLoading(false);

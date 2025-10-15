@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,6 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     const savedEmail = localStorage.getItem(LOCAL_STORAGE_EMAIL_KEY);
@@ -48,17 +47,10 @@ const LoginForm = () => {
         localStorage.removeItem(LOCAL_STORAGE_EMAIL_KEY);
       }
 
-      toast({
-        title: "Sucesso!",
-        description: "Login realizado com sucesso.",
-      });
+      showSuccess("Login realizado com sucesso."); // Usando showSuccess
       navigate("/menu");
     } catch (error: any) {
-      toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
+      showError(error.message || "Ocorreu um erro inesperado."); // Usando showError
     } finally {
       setLoading(false);
     }

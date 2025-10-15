@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import {
   Dialog,
   DialogContent,
@@ -24,18 +24,13 @@ const ForgotPasswordDialog = ({ children }: ForgotPasswordDialogProps) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (!email) {
-      toast({
-        title: "Erro",
-        description: "Por favor, digite seu email.",
-        variant: "destructive",
-      });
+      showError("Por favor, digite seu email."); // Usando showError
       setLoading(false);
       return;
     }
@@ -49,18 +44,11 @@ const ForgotPasswordDialog = ({ children }: ForgotPasswordDialogProps) => {
         throw error;
       }
 
-      toast({
-        title: "Email Enviado",
-        description: "Verifique seu email para o link de redefinição de senha.",
-      });
+      showSuccess("Verifique seu email para o link de redefinição de senha."); // Usando showSuccess
       setEmail("");
       setIsOpen(false); // Fecha o diálogo após o envio
     } catch (error: any) {
-      toast({
-        title: "Erro ao redefinir senha",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
+      showError(error.message || "Ocorreu um erro inesperado."); // Usando showError
     } finally {
       setLoading(false);
     }

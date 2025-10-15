@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -41,7 +41,6 @@ interface Order {
 const OrderManagement = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole, userProfile } = useUserRole();
-  const { toast } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,11 +77,7 @@ const OrderManagement = () => {
       .order("data_pedido", { ascending: false });
 
     if (dailyError) {
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar pedidos do dia: " + dailyError.message,
-        variant: "destructive",
-      });
+      showError("Erro ao carregar pedidos do dia: " + dailyError.message); // Usando showError
       setOrders([]);
       setDailyTotal(0);
     } else {
@@ -134,16 +129,9 @@ const OrderManagement = () => {
       .eq("id", orderToDeleteId);
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir pedido: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao excluir pedido: " + error.message); // Usando showError
     } else {
-      toast({
-        title: "Sucesso",
-        description: "Pedido excluído com sucesso.",
-      });
+      showSuccess("Pedido excluído com sucesso."); // Usando showSuccess
       fetchOrders(date);
     }
     setLoading(false);

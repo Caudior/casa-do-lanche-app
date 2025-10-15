@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import {
   Select,
   SelectContent,
@@ -49,7 +49,6 @@ interface ClientReport {
 const Reports = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
-  const { toast } = useToast();
 
   const currentMonth = getMonth(new Date());
   const currentYear = getYear(new Date());
@@ -90,11 +89,7 @@ const Reports = () => {
       .order("data_pedido", { ascending: true });
 
     if (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar relatórios: " + error.message,
-        variant: "destructive",
-      });
+      showError("Erro ao carregar relatórios: " + error.message); // Usando showError
       setClientReports([]);
     } else {
       const reportsMap = new Map<string, ClientReport>();
@@ -133,16 +128,9 @@ const Reports = () => {
     // 1. Gerar e baixar o PDF
     if (monthName) {
       generateClientReportPdf(client, monthName, selectedYear);
-      toast({
-        title: "PDF Gerado!",
-        description: "O relatório em PDF foi baixado. Anexe-o manualmente no WhatsApp.",
-      });
+      showSuccess("O relatório em PDF foi baixado. Anexe-o manualmente no WhatsApp."); // Usando showSuccess
     } else {
-      toast({
-        title: "Erro",
-        description: "Não foi possível determinar o nome do mês para o PDF.",
-        variant: "destructive",
-      });
+      showError("Não foi possível determinar o nome do mês para o PDF."); // Usando showError
       return;
     }
 

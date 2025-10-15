@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,21 +14,12 @@ const UpdatePassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Verifica se há uma sessão ativa. Se sim, o usuário já está logado e não precisa redefinir.
-    // No entanto, para o fluxo de redefinição de senha, o usuário pode não ter uma sessão ativa.
-    // O Supabase lida com o token de redefinição automaticamente na URL.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        // Se o evento for PASSWORD_RECOVERY, o usuário está no fluxo de redefinição.
-        // Se for SIGNED_IN, significa que a sessão foi estabelecida (ou já existia).
-        // Podemos verificar se o usuário já está logado e redirecionar, se necessário.
         if (session) {
-          // O usuário já está logado ou acabou de fazer login após a redefinição.
-          // Redirecionar para uma página pós-login.
-          // Para este caso, vamos permitir que ele atualize a senha se chegou aqui via link de redefinição.
+          // Lógica para lidar com a sessão após redefinição, se necessário.
         }
       }
     });
@@ -41,21 +32,13 @@ const UpdatePassword = () => {
     setLoading(true);
 
     if (password !== confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem.",
-        variant: "destructive",
-      });
+      showError("As senhas não coincidem."); // Usando showError
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      toast({
-        title: "Erro",
-        description: "A senha deve ter pelo menos 6 caracteres.",
-        variant: "destructive",
-      });
+      showError("A senha deve ter pelo menos 6 caracteres."); // Usando showError
       setLoading(false);
       return;
     }
@@ -69,17 +52,10 @@ const UpdatePassword = () => {
         throw error;
       }
 
-      toast({
-        title: "Sucesso!",
-        description: "Sua senha foi atualizada com sucesso. Você já está logado.",
-      });
+      showSuccess("Sua senha foi atualizada com sucesso. Você já está logado."); // Usando showSuccess
       navigate("/menu"); // Redireciona para a página principal após a atualização
     } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar senha",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
+      showError(error.message || "Ocorreu um erro inesperado."); // Usando showError
     } finally {
       setLoading(false);
     }
