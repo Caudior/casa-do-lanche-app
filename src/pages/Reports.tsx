@@ -246,7 +246,7 @@ const Reports = () => {
                           <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto"> {/* Alterado items-start para items-end */}
                         <span className="text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
                         <Button
                           variant="default"
