@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast";
 import {
   Dialog,
   DialogContent,
@@ -16,11 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface ForgotPasswordDialogProps {
-  children: React.ReactNode;
-}
-
-const ForgotPasswordDialog = ({ children }: ForgotPasswordDialogProps) => {
+const ForgotPasswordDialog = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -30,25 +26,25 @@ const ForgotPasswordDialog = ({ children }: ForgotPasswordDialogProps) => {
     setLoading(true);
 
     if (!email) {
-      showError("Por favor, digite seu email."); // Usando showError
+      showError("Por favor, digite seu email.");
       setLoading(false);
       return;
     }
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`, // Redireciona para uma página de atualização de senha
+        redirectTo: `${window.location.origin}/update-password`,
       });
 
       if (error) {
         throw error;
       }
 
-      showSuccess("Verifique seu email para o link de redefinição de senha."); // Usando showSuccess
+      showSuccess("Verifique seu email para o link de redefinição de senha.");
       setEmail("");
-      setIsOpen(false); // Fecha o diálogo após o envio
+      setIsOpen(false);
     } catch (error: any) {
-      showError(error.message || "Ocorreu um erro inesperado."); // Usando showError
+      showError(error.message || "Ocorreu um erro inesperado.");
     } finally {
       setLoading(false);
     }
@@ -56,7 +52,12 @@ const ForgotPasswordDialog = ({ children }: ForgotPasswordDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger asChild>
+        {/* Botão de gatilho hardcoded para depuração */}
+        <Button variant="link" type="button" className="px-0 text-sm text-primary hover:underline">
+          Esqueceu sua senha?
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-card text-foreground">
         <DialogHeader>
           <DialogTitle>Esqueceu sua Senha?</DialogTitle>

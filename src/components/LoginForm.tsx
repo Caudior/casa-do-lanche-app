@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -47,10 +47,10 @@ const LoginForm = () => {
         localStorage.removeItem(LOCAL_STORAGE_EMAIL_KEY);
       }
 
-      showSuccess("Login realizado com sucesso."); // Usando showSuccess
+      showSuccess("Login realizado com sucesso.");
       navigate("/menu");
     } catch (error: any) {
-      showError(error.message || "Ocorreu um erro inesperado."); // Usando showError
+      showError(error.message || "Ocorreu um erro inesperado.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ const LoginForm = () => {
             placeholder="Digite sua senha"
           />
         </div>
-        <div className="flex items-center justify-between"> {/* Adicionado justify-between */}
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Checkbox
               id="rememberMe"
@@ -94,11 +94,8 @@ const LoginForm = () => {
               Lembrar-me
             </Label>
           </div>
-          <ForgotPasswordDialog> {/* Integrando o diálogo aqui */}
-            <Button variant="link" type="button" className="px-0 text-sm text-primary hover:underline">
-              Esqueceu sua senha?
-            </Button>
-          </ForgotPasswordDialog>
+          {/* Usando ForgotPasswordDialog sem children, pois o botão de gatilho está hardcoded dentro dele */}
+          <ForgotPasswordDialog />
         </div>
       </div>
       <Button
