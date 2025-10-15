@@ -10,7 +10,8 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import MenuManagement from "@/pages/MenuManagement";
 import OrderManagement from "@/pages/OrderManagement";
 import Reports from "@/pages/Reports";
-import ClientReports from "@/pages/ClientReports"; // Importar a nova página
+import ClientReports from "@/pages/ClientReports";
+import UpdatePassword from "@/pages/UpdatePassword"; // Importar a nova página
 import NotFound from "@/pages/NotFound";
 
 const App = () => {
@@ -22,7 +23,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/menu" element={<Menu />} />
-          <Route path="/my-reports" element={<ClientReports />} /> {/* Nova rota */}
+          <Route path="/my-reports" element={<ClientReports />} />
+          <Route path="/update-password" element={<UpdatePassword />} /> {/* Nova rota */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/menu-management" element={<MenuManagement />} />
           <Route path="/admin/order-management" element={<OrderManagement />} />

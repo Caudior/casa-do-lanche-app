@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog"; // Importar o novo componente
 
 const LOCAL_STORAGE_EMAIL_KEY = "rememberedEmail";
 
@@ -90,15 +91,22 @@ const LoginForm = () => {
             placeholder="Digite sua senha"
           />
         </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="rememberMe"
-            checked={rememberMe}
-            onCheckedChange={(checked) => setRememberMe(!!checked)}
-          />
-          <Label htmlFor="rememberMe" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Lembrar-me
-          </Label>
+        <div className="flex items-center justify-between"> {/* Adicionado justify-between */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(!!checked)}
+            />
+            <Label htmlFor="rememberMe" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Lembrar-me
+            </Label>
+          </div>
+          <ForgotPasswordDialog> {/* Integrando o diálogo aqui */}
+            <Button variant="link" type="button" className="px-0 text-sm text-primary hover:underline">
+              Esqueceu sua senha?
+            </Button>
+          </ForgotPasswordDialog>
         </div>
       </div>
       <Button
