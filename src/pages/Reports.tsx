@@ -236,7 +236,7 @@ const Reports = () => {
               <Accordion type="single" collapsible className="w-full">
                 {clientReports.map((client, index) => (
                   <AccordionItem key={client.userId} value={client.userId} className="border-b border-border">
-                    <AccordionTrigger className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 hover:bg-muted/50 text-left">
+                    <AccordionTrigger className="flex flex-col sm:flex-row items-center justify-between p-4 hover:bg-muted/50 text-left">
                       <div className="flex items-center gap-3 mb-2 sm:mb-0">
                         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-secondary-foreground font-bold">
                           {index + 1}
@@ -246,8 +246,8 @@ const Reports = () => {
                           <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto"> {/* Alterado items-start para items-end */}
-                        <span className="text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                        <span className="flex items-center text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
                         <Button
                           variant="default"
                           size="sm"
