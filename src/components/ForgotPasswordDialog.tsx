@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // Importação atualizada
 import {
   Dialog,
   DialogContent,
