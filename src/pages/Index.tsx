@@ -60,6 +60,9 @@ const Index = () => {
         </div>
       </div>
       <MadeWithDyad />
+      {/* TESTE DE ATUALIZAÇÃO - REMOVER DEPOIS */}
+      <div className="mt-8 text-lg font-bold text-green-500">TESTE DE ATUALIZAÇÃO</div>
+      {/* FIM DO TESTE */}
     </div>
   );
 };
