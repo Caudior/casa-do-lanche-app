@@ -15,7 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatName } from "@/lib/utils"; // Importando formatName
+import { formatName, cn } from "@/lib/utils"; // Importando cn
+import { Calendar } from "@/components/ui/calendar"; // Importando Calendar
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Importando Popover
+import { format } from "date-fns"; // Importando format
+import { ptBR } from "date-fns/locale"; // Importando locale ptBR
+import { CalendarIcon } from "lucide-react"; // Importando CalendarIcon
 
 interface User {
   id: string;
@@ -37,6 +42,7 @@ const TempDataInserter = () => {
   const [selectedMenuItemId, setSelectedMenuItemId] = useState<string | null>(null);
   const [selectedMenuItemPrice, setSelectedMenuItemPrice] = useState<number | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Novo estado para a data
   const [isInserting, setIsInserting] = useState(false);
   const navigate = useNavigate();
 
@@ -111,13 +117,15 @@ const TempDataInserter = () => {
 
     try {
       const total = selectedMenuItemPrice * quantity;
+      const orderDate = selectedDate ? selectedDate.toISOString() : new Date().toISOString(); // Usa a data selecionada ou a data atual
+
       const { error } = await supabase.from("pedidos").insert({
         usuario_id: selectedUserId,
         cardapio_id: selectedMenuItemId,
         quantidade: quantity,
         total: parseFloat(total.toFixed(2)),
         status: "Pendente",
-        data_pedido: new Date().toISOString(),
+        data_pedido: orderDate,
       });
 
       if (error) {
@@ -201,6 +209,32 @@ const TempDataInserter = () => {
                     required
                     className="bg-input"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="date-select">Data do Pedido</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-card text-foreground">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <Button
