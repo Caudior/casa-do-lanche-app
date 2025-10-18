@@ -8,12 +8,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatName } from "@/lib/utils"; // Importando formatName
+
+interface User {
+  id: string;
+  nome: string;
+  email: string;
+}
+
+interface MenuItem {
+  id: string;
+  nome: string;
+  preco: number;
+}
 
 const TempDataInserter = () => {
   const [loading, setLoading] = useState(true);
-  const [airtonId, setAirtonId] = useState<string | null>(null);
-  const [pizzaId, setPizzaId] = useState<string | null>(null);
-  const [pizzaPrice, setPizzaPrice] = useState<number | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedMenuItemId, setSelectedMenuItemId] = useState<string | null>(null);
+  const [selectedMenuItemPrice, setSelectedMenuItemPrice] = useState<number | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [isInserting, setIsInserting] = useState(false);
   const navigate = useNavigate();
@@ -22,43 +44,33 @@ const TempDataInserter = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Buscar ID do Airton
-        const { data: userData, error: userError } = await supabase
+        // Buscar todos os usuários
+        const { data: usersData, error: usersError } = await supabase
           .from("usuario")
-          .select("id")
-          .ilike("nome", "%Airton%")
-          .single();
+          .select("id, nome, email")
+          .order("nome", { ascending: true });
 
-        if (userError) {
-          showError("Erro ao buscar ID do Airton: " + userError.message);
-          setAirtonId(null);
-        } else if (userData) {
-          setAirtonId(userData.id);
-          showSuccess(`ID do Airton encontrado: ${userData.id}`);
-        } else {
-          showError("Usuário 'Airton' não encontrado.");
-          setAirtonId(null);
+        if (usersError) {
+          showError("Erro ao buscar usuários: " + usersError.message);
+          setUsers([]);
+        } else if (usersData) {
+          setUsers(usersData as User[]);
+          showSuccess(`Usuários carregados: ${usersData.length}`);
         }
 
-        // Buscar ID e preço da PIZZA
-        const { data: menuItemData, error: menuItemError } = await supabase
+        // Buscar todos os itens do cardápio ativos
+        const { data: menuItemsData, error: menuItemsError } = await supabase
           .from("cardapio")
-          .select("id, preco")
-          .ilike("nome", "%PIZZA%")
-          .single();
+          .select("id, nome, preco")
+          .eq("ativo", true)
+          .order("nome", { ascending: true });
 
-        if (menuItemError) {
-          showError("Erro ao buscar ID da PIZZA: " + menuItemError.message);
-          setPizzaId(null);
-          setPizzaPrice(null);
-        } else if (menuItemData) {
-          setPizzaId(menuItemData.id);
-          setPizzaPrice(menuItemData.preco);
-          showSuccess(`Item 'PIZZA' encontrado: ${menuItemData.id} (R$ ${menuItemData.preco.toFixed(2)})`);
-        } else {
-          showError("Item 'PIZZA' não encontrado no cardápio.");
-          setPizzaId(null);
-          setPizzaPrice(null);
+        if (menuItemsError) {
+          showError("Erro ao buscar itens do cardápio: " + menuItemsError.message);
+          setMenuItems([]);
+        } else if (menuItemsData) {
+          setMenuItems(menuItemsData as MenuItem[]);
+          showSuccess(`Itens do cardápio carregados: ${menuItemsData.length}`);
         }
 
       } catch (error: any) {
@@ -71,12 +83,22 @@ const TempDataInserter = () => {
     fetchData();
   }, []);
 
+  // Atualiza o preço do item selecionado quando o item do cardápio muda
+  useEffect(() => {
+    if (selectedMenuItemId) {
+      const item = menuItems.find(item => item.id === selectedMenuItemId);
+      setSelectedMenuItemPrice(item?.preco || null);
+    } else {
+      setSelectedMenuItemPrice(null);
+    }
+  }, [selectedMenuItemId, menuItems]);
+
   const handleInsertOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsInserting(true);
 
-    if (!airtonId || !pizzaId || pizzaPrice === null) {
-      showError("Dados essenciais (ID do Airton, ID/Preço da Pizza) não foram carregados. Não é possível inserir o pedido.");
+    if (!selectedUserId || !selectedMenuItemId || selectedMenuItemPrice === null) {
+      showError("Por favor, selecione um usuário e um item do cardápio.");
       setIsInserting(false);
       return;
     }
@@ -88,10 +110,10 @@ const TempDataInserter = () => {
     }
 
     try {
-      const total = pizzaPrice * quantity;
+      const total = selectedMenuItemPrice * quantity;
       const { error } = await supabase.from("pedidos").insert({
-        usuario_id: airtonId,
-        cardapio_id: pizzaId,
+        usuario_id: selectedUserId,
+        cardapio_id: selectedMenuItemId,
         quantidade: quantity,
         total: parseFloat(total.toFixed(2)),
         status: "Pendente",
@@ -102,7 +124,10 @@ const TempDataInserter = () => {
         throw error;
       }
 
-      showSuccess(`Pedido de ${quantity}x PIZZA para Airton inserido com sucesso! Total: R$ ${total.toFixed(2).replace('.', ',')}`);
+      const selectedUser = users.find(u => u.id === selectedUserId);
+      const selectedItem = menuItems.find(item => item.id === selectedMenuItemId);
+
+      showSuccess(`Pedido de ${quantity}x ${selectedItem?.nome || 'Item'} para ${selectedUser?.nome || 'Usuário'} inserido com sucesso! Total: R$ ${total.toFixed(2).replace('.', ',')}`);
       setQuantity(1); // Reset quantity
     } catch (error: any) {
       showError("Erro ao inserir pedido: " + error.message);
@@ -117,29 +142,56 @@ const TempDataInserter = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-foreground">Inserir Pedido Temporário</CardTitle>
           <CardDescription className="mt-2 text-sm text-muted-foreground">
-            Página de depuração para inserir pedidos para o Airton.
+            Página de depuração para inserir pedidos de teste.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center text-muted-foreground">Carregando IDs de usuário e cardápio...</div>
+            <div className="text-center text-muted-foreground">Carregando usuários e cardápio...</div>
           ) : (
             <form onSubmit={handleInsertOrder} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="airtonId">ID do Airton</Label>
-                  <Input id="airtonId" value={airtonId || "Não encontrado"} readOnly className="bg-muted" />
+                  <Label htmlFor="user-select">Selecionar Usuário</Label>
+                  <Select value={selectedUserId || ""} onValueChange={setSelectedUserId}>
+                    <SelectTrigger id="user-select" className="w-full bg-input text-foreground">
+                      <SelectValue placeholder="Selecione um usuário" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card text-foreground">
+                      {users.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {formatName(user.nome)} ({user.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label htmlFor="pizzaId">ID da PIZZA</Label>
-                  <Input id="pizzaId" value={pizzaId || "Não encontrado"} readOnly className="bg-muted" />
+                  <Label htmlFor="menu-item-select">Selecionar Item do Cardápio</Label>
+                  <Select value={selectedMenuItemId || ""} onValueChange={setSelectedMenuItemId}>
+                    <SelectTrigger id="menu-item-select" className="w-full bg-input text-foreground">
+                      <SelectValue placeholder="Selecione um item" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card text-foreground">
+                      {menuItems.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.nome} (R$ {item.preco.toFixed(2).replace('.', ',')})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label htmlFor="pizzaPrice">Preço da PIZZA</Label>
-                  <Input id="pizzaPrice" value={pizzaPrice !== null ? `R$ ${pizzaPrice.toFixed(2).replace('.', ',')}` : "Não encontrado"} readOnly className="bg-muted" />
+                  <Label htmlFor="pizzaPrice">Preço do Item Selecionado</Label>
+                  <Input
+                    id="pizzaPrice"
+                    value={selectedMenuItemPrice !== null ? `R$ ${selectedMenuItemPrice.toFixed(2).replace('.', ',')}` : "N/A"}
+                    readOnly
+                    className="bg-muted"
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="quantity">Quantidade de PIZZAs</Label>
+                  <Label htmlFor="quantity">Quantidade</Label>
                   <Input
                     id="quantity"
                     type="number"
@@ -153,7 +205,7 @@ const TempDataInserter = () => {
               </div>
               <Button
                 type="submit"
-                disabled={isInserting || loading || !airtonId || !pizzaId || pizzaPrice === null}
+                disabled={isInserting || loading || !selectedUserId || !selectedMenuItemId || selectedMenuItemPrice === null}
                 className="w-full bg-primary hover:bg-primary/90"
               >
                 {isInserting ? "Inserindo..." : "Inserir Pedido"}
