@@ -11,7 +11,8 @@ import MenuManagement from "@/pages/MenuManagement";
 import OrderManagement from "@/pages/OrderManagement";
 import Reports from "@/pages/Reports";
 import ClientReports from "@/pages/ClientReports";
-import UpdatePassword from "@/pages/UpdatePassword"; // Importar a nova página
+import UpdatePassword from "@/pages/UpdatePassword";
+import TempDataInserter from "@/pages/TempDataInserter"; // Importar a nova página temporária
 import NotFound from "@/pages/NotFound";
 
 const App = () => {
@@ -24,11 +25,12 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/my-reports" element={<ClientReports />} />
-          <Route path="/update-password" element={<UpdatePassword />} /> {/* Nova rota */}
+          <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/menu-management" element={<MenuManagement />} />
           <Route path="/admin/order-management" element={<OrderManagement />} />
           <Route path="/admin/reports" element={<Reports />} />
+          <Route path="/temp-data-inserter" element={<TempDataInserter />} /> {/* Nova rota temporária */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
