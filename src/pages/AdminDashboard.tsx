@@ -74,6 +74,19 @@ const AdminDashboard = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Novo Card para a página de teste */}
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle>Inserir Dados de Teste</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground mb-4">Página temporária para inserir pedidos de teste.</p>
+              <Button onClick={() => navigate("/temp-data-inserter")} className="w-full bg-secondary hover:bg-secondary/90">
+                Acessar Teste
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
