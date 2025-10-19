@@ -19,12 +19,13 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Share2, Download, CheckCircle } from "lucide-react"; // Importando CheckCircle
+import { Share2, Download, CheckCircle } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateClientReportPdf } from "@/utils/pdfGenerator";
 import { formatName } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch"; // Importando o componente Switch
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge"; // Importando o componente Badge
 
 interface Order {
   id: string;
@@ -32,7 +33,7 @@ interface Order {
   cardapio_id: string;
   quantidade: number;
   total: number;
-  status: "Pendente" | "Pago"; // Definindo os tipos de status
+  status: "Pendente" | "Pago";
   data_pedido: string;
   item_nome?: string;
 }
@@ -317,6 +318,9 @@ const Reports = () => {
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                         <span className="flex items-center text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
+                        {client.orders.every(order => order.status === "Pago") && (
+                          <Badge className="bg-green-600 text-white">Pago</Badge>
+                        )}
                         {client.orders.some(order => order.status === "Pendente") && (
                           <Button
                             variant="default"
