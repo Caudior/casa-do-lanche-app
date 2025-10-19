@@ -15,12 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatName, cn } from "@/lib/utils"; // Importando cn
-import { Calendar } from "@/components/ui/calendar"; // Importando Calendar
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Importando Popover
-import { format } from "date-fns"; // Importando format
-import { ptBR } from "date-fns/locale"; // Importando locale ptBR
-import { CalendarIcon } from "lucide-react"; // Importando CalendarIcon
+import { formatName, cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { generateClientReportPdf } from "@/utils/pdfGenerator"; // Importar a função de geração de PDF
 
 interface User {
   id: string;
@@ -34,6 +35,27 @@ interface MenuItem {
   preco: number;
 }
 
+interface Order {
+  id: string;
+  usuario_id: string;
+  cardapio_id: string;
+  quantidade: number;
+  total: number;
+  status: string;
+  data_pedido: string;
+  item_nome?: string;
+}
+
+interface ClientReport {
+  userId: string;
+  userName: string;
+  userPhone: string;
+  userSector: string;
+  totalSpent: number;
+  numOrders: number;
+  orders: Order[];
+}
+
 const TempDataInserter = () => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
@@ -42,7 +64,7 @@ const TempDataInserter = () => {
   const [selectedMenuItemId, setSelectedMenuItemId] = useState<string | null>(null);
   const [selectedMenuItemPrice, setSelectedMenuItemPrice] = useState<number | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Novo estado para a data
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isInserting, setIsInserting] = useState(false);
   const navigate = useNavigate();
 
@@ -117,7 +139,7 @@ const TempDataInserter = () => {
 
     try {
       const total = selectedMenuItemPrice * quantity;
-      const orderDate = selectedDate ? selectedDate.toISOString() : new Date().toISOString(); // Usa a data selecionada ou a data atual
+      const orderDate = selectedDate ? selectedDate.toISOString() : new Date().toISOString();
 
       const { error } = await supabase.from("pedidos").insert({
         usuario_id: selectedUserId,
@@ -136,12 +158,61 @@ const TempDataInserter = () => {
       const selectedItem = menuItems.find(item => item.id === selectedMenuItemId);
 
       showSuccess(`Pedido de ${quantity}x ${selectedItem?.nome || 'Item'} para ${selectedUser?.nome || 'Usuário'} inserido com sucesso! Total: R$ ${total.toFixed(2).replace('.', ',')}`);
-      setQuantity(1); // Reset quantity
+      setQuantity(1);
     } catch (error: any) {
       showError("Erro ao inserir pedido: " + error.message);
     } finally {
       setIsInserting(false);
     }
+  };
+
+  const handleGenerateTestReport = () => {
+    const dummyClientReport: ClientReport = {
+      userId: "test-user-123",
+      userName: "Cliente Teste",
+      userPhone: "21987654321",
+      userSector: "TI",
+      totalSpent: 150.75,
+      numOrders: 3,
+      orders: [
+        {
+          id: "order-1",
+          usuario_id: "test-user-123",
+          cardapio_id: "item-1",
+          quantidade: 2,
+          total: 50.00,
+          status: "Concluído",
+          data_pedido: new Date().toISOString(),
+          item_nome: "Hambúrguer Clássico",
+        },
+        {
+          id: "order-2",
+          usuario_id: "test-user-123",
+          cardapio_id: "item-2",
+          quantidade: 1,
+          total: 35.75,
+          status: "Pendente",
+          data_pedido: new Date().toISOString(),
+          item_nome: "Batata Frita Grande",
+        },
+        {
+          id: "order-3",
+          usuario_id: "test-user-123",
+          cardapio_id: "item-3",
+          quantidade: 3,
+          total: 65.00,
+          status: "Concluído",
+          data_pedido: new Date().toISOString(),
+          item_nome: "Refrigerante Lata",
+        },
+      ],
+    };
+
+    const monthName = format(new Date(), "MMMM", { locale: ptBR });
+    const year = format(new Date(), "yyyy");
+
+    generateClientReportPdf(dummyClientReport, monthName, year);
+    showSuccess("Relatório de teste gerado e baixado para sua pasta de downloads.");
   };
 
   return (
@@ -251,6 +322,13 @@ const TempDataInserter = () => {
                 className="w-full mt-4"
               >
                 Voltar para Gerenciar Pedidos
+              </Button>
+              <Button
+                type="button"
+                onClick={handleGenerateTestReport}
+                className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground mt-4"
+              >
+                Gerar Relatório de Teste (PDF)
               </Button>
             </form>
           )}
