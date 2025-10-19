@@ -19,11 +19,12 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Share2, Download } from "lucide-react"; // Importando o ícone Download
+import { Share2, Download } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateClientReportPdf } from "@/utils/pdfGenerator";
 import { formatName } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch"; // Importando o componente Switch
 
 interface Order {
   id: string;
@@ -57,7 +58,7 @@ const Reports = () => {
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [clientReports, setClientReports] = useState<ClientReport[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
-  const [isGeneratingAllPdfs, setIsGeneratingAllPdfs] = useState(false); // Novo estado para o botão de gerar todos os PDFs
+  const [isGeneratingAllPdfs, setIsGeneratingAllPdfs] = useState(false);
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = new Date(0, i);
@@ -181,6 +182,22 @@ const Reports = () => {
     setIsGeneratingAllPdfs(false);
   };
 
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: "Pendente" | "Pago") => {
+    setLoadingReports(true);
+    const { error } = await supabase
+      .from("pedidos")
+      .update({ status: newStatus })
+      .eq("id", orderId);
+
+    if (error) {
+      showError("Erro ao atualizar status do pedido: " + error.message);
+    } else {
+      showSuccess(`Status do pedido atualizado para "${newStatus}".`);
+      fetchClientReports(); // Re-fetch reports to reflect the change
+    }
+    setLoadingReports(false);
+  };
+
   if (isLoadingRole) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Carregando...</div>;
   }
@@ -297,6 +314,7 @@ const Reports = () => {
                               <TableHead className="min-w-[120px]">Item</TableHead>
                               <TableHead className="min-w-[80px]">Quantidade</TableHead>
                               <TableHead className="min-w-[100px]">Total</TableHead>
+                              <TableHead className="min-w-[100px]">Status</TableHead>
                               <TableHead className="min-w-[150px]">Data</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -306,6 +324,18 @@ const Reports = () => {
                                 <TableCell className="whitespace-nowrap">{order.item_nome}</TableCell>
                                 <TableCell>{order.quantidade}</TableCell>
                                 <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
+                                <TableCell className="whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <span>{order.status}</span>
+                                    {userRole === "admin" && (
+                                      <Switch
+                                        checked={order.status === "Pago"}
+                                        onCheckedChange={(checked) => handleUpdateOrderStatus(order.id, checked ? "Pago" : "Pendente")}
+                                        aria-label={`Marcar pedido ${order.item_nome} como pago`}
+                                      />
+                                    )}
+                                  </div>
+                                </TableCell>
                                 <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
                               </TableRow>
                             ))}

@@ -12,7 +12,8 @@ import OrderManagement from "@/pages/OrderManagement";
 import Reports from "@/pages/Reports";
 import ClientReports from "@/pages/ClientReports";
 import UpdatePassword from "@/pages/UpdatePassword";
-import TempDataInserter from "@/pages/TempDataInserter"; // Importar a nova página temporária
+import TempDataInserter from "@/pages/TempDataInserter";
+import PaidOrders from "@/pages/PaidOrders"; // Importar a nova página de Pedidos Pagos
 import NotFound from "@/pages/NotFound";
 
 const App = () => {
@@ -30,7 +31,8 @@ const App = () => {
           <Route path="/admin/menu-management" element={<MenuManagement />} />
           <Route path="/admin/order-management" element={<OrderManagement />} />
           <Route path="/admin/reports" element={<Reports />} />
-          <Route path="/temp-data-inserter" element={<TempDataInserter />} /> {/* Nova rota temporária */}
+          <Route path="/admin/paid-orders" element={<PaidOrders />} /> {/* Nova rota para Pedidos Pagos */}
+          <Route path="/temp-data-inserter" element={<TempDataInserter />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

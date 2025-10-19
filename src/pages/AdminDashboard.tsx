@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
+  const { userRole, isLoadingRole, userProfile } = useUserRole();
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
@@ -75,7 +75,18 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Novo Card para a página de teste */}
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle>Pedidos Pagos</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground mb-4">Visualize e gerencie pedidos que já foram pagos.</p>
+              <Button onClick={() => navigate("/admin/paid-orders")} className="w-full bg-primary hover:bg-primary/90">
+                Acessar
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="flex flex-col">
             <CardHeader>
               <CardTitle>Inserir Dados de Teste</CardTitle>
