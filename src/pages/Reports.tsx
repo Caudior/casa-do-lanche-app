@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast";
 import {
   Select,
   SelectContent,
@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Share2 } from "lucide-react";
+import { Share2, Download } from "lucide-react"; // Importando o ícone Download
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateClientReportPdf } from "@/utils/pdfGenerator";
-import { formatName } from "@/lib/utils"; // Importando formatName
+import { formatName } from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -48,7 +48,7 @@ interface ClientReport {
 
 const Reports = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
+  const { userRole, isLoadingRole, userProfile } = useUserRole();
 
   const currentMonth = getMonth(new Date());
   const currentYear = getYear(new Date());
@@ -57,6 +57,7 @@ const Reports = () => {
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [clientReports, setClientReports] = useState<ClientReport[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
+  const [isGeneratingAllPdfs, setIsGeneratingAllPdfs] = useState(false); // Novo estado para o botão de gerar todos os PDFs
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = new Date(0, i);
@@ -89,7 +90,7 @@ const Reports = () => {
       .order("data_pedido", { ascending: true });
 
     if (error) {
-      showError("Erro ao carregar relatórios: " + error.message); // Usando showError
+      showError("Erro ao carregar relatórios: " + error.message);
       setClientReports([]);
     } else {
       const reportsMap = new Map<string, ClientReport>();
@@ -101,7 +102,7 @@ const Reports = () => {
             userId: userId,
             userName: order.usuario.nome || "Usuário Desconhecido",
             userPhone: order.usuario.telefone || "N/A",
-            userSector: order.usuario.setor || "N/A", // Populando o setor
+            userSector: order.usuario.setor || "N/A",
             totalSpent: 0,
             numOrders: 0,
             orders: [],
@@ -113,7 +114,7 @@ const Reports = () => {
         clientReport.orders.push({
           ...order,
           item_nome: order.cardapio?.nome || "Item Desconhecido",
-          quantidade: parseFloat(order.quantidade), // Mantido parseFloat para robustez
+          quantidade: parseFloat(order.quantidade),
           total: parseFloat(order.total),
         });
       });
@@ -128,15 +129,15 @@ const Reports = () => {
     // 1. Gerar e baixar o PDF
     if (monthName) {
       generateClientReportPdf(client, monthName, selectedYear);
-      showSuccess("O relatório em PDF foi baixado. Anexe-o manualmente no WhatsApp."); // Usando showSuccess
+      showSuccess("O relatório em PDF foi baixado. Anexe-o manualmente no WhatsApp.");
     } else {
-      showError("Não foi possível determinar o nome do mês para o PDF."); // Usando showError
+      showError("Não foi possível determinar o nome do mês para o PDF.");
       return;
     }
 
     // 2. Abrir WhatsApp com a mensagem de texto
     let message = `*Relatório Mensal de Pedidos - ${monthName}/${selectedYear}*\n\n`;
-    message += `*Cliente:* ${formatName(client.userName)}\n`; // Aplicando formatName aqui
+    message += `*Cliente:* ${formatName(client.userName)}\n`;
     message += `*Telefone:* ${client.userPhone}\n`;
     message += `*Setor:* ${client.userSector}\n`;
     message += `*Total Gasto:* R$ ${client.totalSpent.toFixed(2).replace('.', ',')}\n`;
@@ -149,6 +150,34 @@ const Reports = () => {
 
     const whatsappUrl = `https://wa.me/${client.userPhone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleGenerateAllPdfs = async () => {
+    setIsGeneratingAllPdfs(true);
+    const monthName = months.find(m => m.value === selectedMonth)?.label;
+
+    if (!monthName) {
+      showError("Não foi possível determinar o nome do mês para os PDFs.");
+      setIsGeneratingAllPdfs(false);
+      return;
+    }
+
+    if (clientReports.length === 0) {
+      showError("Não há relatórios de clientes para gerar PDFs neste período.");
+      setIsGeneratingAllPdfs(false);
+      return;
+    }
+
+    showSuccess(`Gerando ${clientReports.length} PDFs...`);
+
+    for (const client of clientReports) {
+      generateClientReportPdf(client, monthName, selectedYear);
+      // Pequeno atraso para evitar sobrecarga do navegador com muitos downloads simultâneos
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+    }
+
+    showSuccess("Todos os PDFs foram gerados e baixados.");
+    setIsGeneratingAllPdfs(false);
   };
 
   if (isLoadingRole) {
@@ -166,9 +195,18 @@ const Reports = () => {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
             Relatórios Mensais por Cliente {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
           </h1>
-          <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
-            Voltar para o Painel
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
+              Voltar para o Painel
+            </Button>
+            <Button
+              onClick={handleGenerateAllPdfs}
+              disabled={isGeneratingAllPdfs || loadingReports || clientReports.length === 0}
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4 mr-2" /> {isGeneratingAllPdfs ? "Gerando PDFs..." : "Gerar Todos os PDFs"}
+            </Button>
+          </div>
         </div>
 
         <Card className="mb-6">
@@ -230,7 +268,7 @@ const Reports = () => {
                           {index + 1}
                         </span>
                         <div className="text-left">
-                          <p className="font-bold text-foreground">{formatName(client.userName)}</p> {/* Aplicando formatName aqui */}
+                          <p className="font-bold text-foreground">{formatName(client.userName)}</p>
                           <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
                       </div>
@@ -240,7 +278,7 @@ const Reports = () => {
                           variant="default"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation(); // Evita que o accordion feche/abra
+                            e.stopPropagation();
                             handleShareReport(client);
                           }}
                           className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
@@ -250,7 +288,7 @@ const Reports = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-4 bg-muted/20">
-                      <h3 className="font-semibold text-foreground mb-2">Pedidos de {formatName(client.userName)}:</h3> {/* Aplicando formatName aqui */}
+                      <h3 className="font-semibold text-foreground mb-2">Pedidos de {formatName(client.userName)}:</h3>
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
