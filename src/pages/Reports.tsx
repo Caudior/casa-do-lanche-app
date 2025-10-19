@@ -168,12 +168,13 @@ const Reports = () => {
       return;
     }
 
-    showSuccess(`Gerando ${clientReports.length} PDFs...`);
+    showSuccess(`Iniciando a geração de ${clientReports.length} PDFs. Verifique seus downloads.`);
 
     for (const client of clientReports) {
+      showSuccess(`Gerando PDF para ${formatName(client.userName)}...`);
       generateClientReportPdf(client, monthName, selectedYear);
-      // Pequeno atraso para evitar sobrecarga do navegador com muitos downloads simultâneos
-      await new Promise(resolve => setTimeout(resolve, 500)); 
+      // Atraso de 2 segundos para dar tempo de observar o download
+      await new Promise(resolve => setTimeout(resolve, 2000)); 
     }
 
     showSuccess("Todos os PDFs foram gerados e baixados.");
