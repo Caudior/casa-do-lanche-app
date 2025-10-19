@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Share2, Download } from "lucide-react";
+import { Share2, Download, CheckCircle } from "lucide-react"; // Importando CheckCircle
 import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateClientReportPdf } from "@/utils/pdfGenerator";
@@ -32,7 +32,7 @@ interface Order {
   cardapio_id: string;
   quantidade: number;
   total: number;
-  status: string;
+  status: "Pendente" | "Pago"; // Definindo os tipos de status
   data_pedido: string;
   item_nome?: string;
 }
@@ -198,6 +198,31 @@ const Reports = () => {
     setLoadingReports(false);
   };
 
+  const handleMarkAllClientOrdersAsPaid = async (userId: string) => {
+    setLoadingReports(true);
+    const year = parseInt(selectedYear);
+    const month = parseInt(selectedMonth) - 1; // Mês é 0-indexado para Date
+
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
+
+    const { error } = await supabase
+      .from("pedidos")
+      .update({ status: "Pago" })
+      .eq("usuario_id", userId)
+      .eq("status", "Pendente") // Apenas pedidos pendentes
+      .gte("data_pedido", startOfMonth.toISOString())
+      .lt("data_pedido", endOfMonth.toISOString());
+
+    if (error) {
+      showError("Erro ao marcar todos os pedidos como pagos: " + error.message);
+    } else {
+      showSuccess("Todos os pedidos pendentes do cliente foram marcados como pagos.");
+      fetchClientReports(); // Re-fetch reports to reflect the change
+    }
+    setLoadingReports(false);
+  };
+
   if (isLoadingRole) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Carregando...</div>;
   }
@@ -292,6 +317,20 @@ const Reports = () => {
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                         <span className="flex items-center text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
+                        {client.orders.some(order => order.status === "Pendente") && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Evita que o acordeão feche/abra
+                              handleMarkAllClientOrdersAsPaid(client.userId);
+                            }}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
+                            disabled={loadingReports}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" /> Marcar Todos como Pagos
+                          </Button>
+                        )}
                         <Button
                           variant="default"
                           size="sm"
