@@ -10,10 +10,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, CheckCircle } from "lucide-react"; // Importando CheckCircle
 import { cn, formatName } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch"; // Importando o componente Switch
+import { Switch } from "@/components/ui/switch";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface Order {
   id: string;
@@ -21,31 +27,40 @@ interface Order {
   cardapio_id: string;
   quantidade: number;
   total: number;
-  status: string;
+  status: "Pendente" | "Pago"; // Definindo os tipos de status
   data_pedido: string; // ISO string from DB
-  usuario_nome?: string;
-  usuario_email?: string;
   item_nome?: string;
+}
+
+interface ClientOrderGroup {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userPhone: string;
+  userSector: string;
+  totalPaid: number;
+  totalPending: number;
+  orders: Order[];
 }
 
 const PaidOrders = () => {
   const navigate = useNavigate();
   const { userRole, isLoadingRole, userProfile } = useUserRole();
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [totalPaidInPeriod, setTotalPaidInPeriod] = useState<number>(0);
+  const [clientOrderGroups, setClientOrderGroups] = useState<ClientOrderGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalDailySales, setTotalDailySales] = useState<number>(0);
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
       navigate("/");
     } else if (userRole === "admin") {
-      fetchPaidOrders(date);
+      fetchClientOrders(date);
     }
   }, [userRole, isLoadingRole, navigate, date]);
 
-  const fetchPaidOrders = async (selectedDate?: Date) => {
+  const fetchClientOrders = async (selectedDate?: Date) => {
     setLoading(true);
     const today = selectedDate || new Date();
 
@@ -56,32 +71,55 @@ const PaidOrders = () => {
 
     const { data, error } = await supabase
       .from("pedidos")
-      .select("*, usuario(nome, email), cardapio(nome)")
-      .eq("status", "Pago") // Filtrar por status 'Pago'
+      .select("*, usuario(id, nome, email, telefone, setor), cardapio(nome)")
       .gte("data_pedido", startOfDay.toISOString())
       .lt("data_pedido", endOfDay.toISOString())
       .order("data_pedido", { ascending: false });
 
     if (error) {
-      showError("Erro ao carregar pedidos pagos: " + error.message);
-      setOrders([]);
-      setTotalPaidInPeriod(0);
+      showError("Erro ao carregar pedidos: " + error.message);
+      setClientOrderGroups([]);
+      setTotalDailySales(0);
     } else {
-      const formattedOrders: Order[] = data.map((order: any) => ({
-        id: order.id,
-        usuario_id: order.usuario_id,
-        cardapio_id: order.cardapio_id,
-        quantidade: parseFloat(order.quantidade),
-        total: parseFloat(order.total),
-        status: order.status,
-        data_pedido: order.data_pedido,
-        usuario_nome: order.usuario?.nome || "N/A",
-        usuario_email: order.usuario?.email || "N/A",
-        item_nome: order.cardapio?.nome || "N/A",
-      }));
-      setOrders(formattedOrders);
-      const currentTotal = formattedOrders.reduce((sum, order) => sum + order.total, 0);
-      setTotalPaidInPeriod(currentTotal);
+      const groupsMap = new Map<string, ClientOrderGroup>();
+      let currentTotalDailySales = 0;
+
+      data.forEach((order: any) => {
+        const userId = order.usuario.id;
+        if (!groupsMap.has(userId)) {
+          groupsMap.set(userId, {
+            userId: userId,
+            userName: order.usuario?.nome || "N/A",
+            userEmail: order.usuario?.email || "N/A",
+            userPhone: order.usuario?.telefone || "N/A",
+            userSector: order.usuario?.setor || "N/A",
+            totalPaid: 0,
+            totalPending: 0,
+            orders: [],
+          });
+        }
+        const clientGroup = groupsMap.get(userId)!;
+        const orderTotal = parseFloat(order.total);
+        
+        if (order.status === "Pago") {
+          clientGroup.totalPaid += orderTotal;
+        } else {
+          clientGroup.totalPending += orderTotal;
+        }
+        clientGroup.orders.push({
+          id: order.id,
+          usuario_id: order.usuario_id,
+          cardapio_id: order.cardapio_id,
+          quantidade: parseFloat(order.quantidade),
+          total: orderTotal,
+          status: order.status,
+          data_pedido: order.data_pedido,
+          item_nome: order.cardapio?.nome || "N/A",
+        });
+        currentTotalDailySales += orderTotal;
+      });
+      setClientOrderGroups(Array.from(groupsMap.values()).sort((a, b) => a.userName.localeCompare(b.userName)));
+      setTotalDailySales(currentTotalDailySales);
     }
     setLoading(false);
   };
@@ -97,7 +135,26 @@ const PaidOrders = () => {
       showError("Erro ao atualizar status do pedido: " + error.message);
     } else {
       showSuccess(`Status do pedido atualizado para "${newStatus}".`);
-      fetchPaidOrders(date); // Re-fetch orders to reflect the change
+      fetchClientOrders(date); // Re-fetch orders to reflect the change
+    }
+    setLoading(false);
+  };
+
+  const handleMarkAllClientOrdersAsPaid = async (userId: string) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("pedidos")
+      .update({ status: "Pago" })
+      .eq("usuario_id", userId)
+      .eq("status", "Pendente") // Apenas pedidos pendentes
+      .gte("data_pedido", new Date(date!).setHours(0,0,0,0).toISOString())
+      .lt("data_pedido", new Date(date!).setHours(23,59,59,999).toISOString());
+
+    if (error) {
+      showError("Erro ao marcar todos os pedidos como pagos: " + error.message);
+    } else {
+      showSuccess("Todos os pedidos pendentes do cliente foram marcados como pagos.");
+      fetchClientOrders(date);
     }
     setLoading(false);
   };
@@ -121,7 +178,7 @@ const PaidOrders = () => {
               className="w-12 h-auto sm:w-16 mr-4" 
             />
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Pedidos Pagos {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
+              Gerenciar Pedidos {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {formatName(userProfile.nome)}!</span>}
             </h1>
           </div>
           <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
@@ -131,12 +188,12 @@ const PaidOrders = () => {
 
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pago no Dia</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Vendas do Dia</CardTitle>
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              R$ {totalPaidInPeriod.toFixed(2).replace('.', ',')}
+              R$ {totalDailySales.toFixed(2).replace('.', ',')}
             </div>
             <p className="text-xs text-muted-foreground">
               {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "Hoje"}
@@ -172,47 +229,87 @@ const PaidOrders = () => {
         </div>
 
         {loading ? (
-          <div className="text-center text-muted-foreground">Carregando pedidos pagos...</div>
-        ) : orders.length === 0 ? (
-          <div className="text-center text-muted-foreground">Nenhum pedido pago encontrado para a data selecionada.</div>
+          <div className="text-center text-muted-foreground">Carregando pedidos...</div>
+        ) : clientOrderGroups.length === 0 ? (
+          <div className="text-center text-muted-foreground">Nenhum pedido encontrado para a data selecionada.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[120px]">Item</TableHead>
-                  <TableHead className="min-w-[120px]">Cliente</TableHead>
-                  <TableHead className="min-w-[150px]">Email Cliente</TableHead>
-                  <TableHead className="min-w-[80px]">Quantidade</TableHead>
-                  <TableHead className="min-w-[100px]">Total</TableHead>
-                  <TableHead className="min-w-[100px]">Status</TableHead>
-                  <TableHead className="min-w-[150px]">Data do Pedido</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium whitespace-nowrap">{order.item_nome}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatName(order.usuario_nome)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{order.usuario_email}</TableCell>
-                    <TableCell>{order.quantidade}</TableCell>
-                    <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span>{order.status}</span>
-                        <Switch
-                          checked={order.status === "Pago"}
-                          onCheckedChange={(checked) => handleUpdateOrderStatus(order.id, checked ? "Pago" : "Pendente")}
-                          aria-label={`Marcar pedido ${order.item_nome} como pago`}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            {clientOrderGroups.map((clientGroup) => (
+              <AccordionItem key={clientGroup.userId} value={clientGroup.userId} className="border-b border-border">
+                <AccordionTrigger className="flex flex-col sm:flex-row items-center justify-between p-4 hover:bg-muted/50 text-left">
+                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                    <div className="text-left">
+                      <p className="font-bold text-foreground">{formatName(clientGroup.userName)}</p>
+                      <p className="text-sm text-muted-foreground">{clientGroup.userSector} • {clientGroup.userPhone}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                    {clientGroup.totalPending > 0 && (
+                      <span className="text-lg font-semibold text-destructive">
+                        Pendente: R$ {clientGroup.totalPending.toFixed(2).replace('.', ',')}
+                      </span>
+                    )}
+                    {clientGroup.totalPaid > 0 && (
+                      <span className="text-lg font-semibold text-green-600">
+                        Pago: R$ {clientGroup.totalPaid.toFixed(2).replace('.', ',')}
+                      </span>
+                    )}
+                    {clientGroup.totalPending > 0 && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkAllClientOrdersAsPaid(clientGroup.userId);
+                        }}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
+                        disabled={loading}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" /> Marcar Todos como Pagos
+                      </Button>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="p-4 bg-muted/20">
+                  <h3 className="font-semibold text-foreground mb-2">Pedidos de {formatName(clientGroup.userName)}:</h3>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[120px]">Item</TableHead>
+                          <TableHead className="min-w-[80px]">Quantidade</TableHead>
+                          <TableHead className="min-w-[100px]">Total</TableHead>
+                          <TableHead className="min-w-[100px]">Status</TableHead>
+                          <TableHead className="min-w-[150px]">Data do Pedido</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {clientGroup.orders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium whitespace-nowrap">{order.item_nome}</TableCell>
+                            <TableCell>{order.quantidade}</TableCell>
+                            <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <span>{order.status}</span>
+                                <Switch
+                                  checked={order.status === "Pago"}
+                                  onCheckedChange={(checked) => handleUpdateOrderStatus(order.id, checked ? "Pago" : "Pendente")}
+                                  aria-label={`Marcar pedido ${order.item_nome} como pago`}
+                                  disabled={loading}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         )}
       </div>
     </div>
