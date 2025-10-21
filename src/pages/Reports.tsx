@@ -120,7 +120,29 @@ const Reports = () => {
           total: parseFloat(order.total),
         });
       });
-      setClientReports(Array.from(reportsMap.values()).sort((a, b) => b.totalSpent - a.totalSpent));
+
+      let allClients = Array.from(reportsMap.values());
+      let mostLoyalClient: ClientReport | null = null;
+
+      if (allClients.length > 0) {
+        // Encontra o cliente mais fiel (maior gasto)
+        mostLoyalClient = allClients.reduce((prev, current) =>
+          (prev.totalSpent > current.totalSpent) ? prev : current
+        );
+
+        // Filtra o cliente mais fiel da lista
+        allClients = allClients.filter(client => client.userId !== mostLoyalClient?.userId);
+      }
+
+      // Ordena os clientes restantes alfabeticamente
+      allClients.sort((a, b) => formatName(a.userName).localeCompare(formatName(b.userName)));
+
+      // Adiciona o cliente mais fiel no início da lista, se encontrado
+      if (mostLoyalClient) {
+        allClients.unshift(mostLoyalClient);
+      }
+
+      setClientReports(allClients);
     }
     setLoadingReports(false);
   };
@@ -315,6 +337,9 @@ const Reports = () => {
                           <p className="font-bold text-foreground">{formatName(client.userName)}</p>
                           <p className="text-sm text-muted-foreground">{client.userSector} • {client.numOrders} pedidos</p>
                         </div>
+                        {index === 0 && clientReports.length > 0 && ( // Apenas para o primeiro cliente (mais fiel)
+                          <Badge className="bg-green-600 text-white ml-2">O cliente mais fiel até o momento!</Badge>
+                        )}
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                         <span className="flex items-center text-lg font-semibold text-secondary">R$ {client.totalSpent.toFixed(2).replace('.', ',')}</span>
@@ -369,7 +394,9 @@ const Reports = () => {
                                 <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
                                 <TableCell className="whitespace-nowrap">
                                   <div className="flex items-center gap-2">
-                                    <span>{order.status}</span>
+                                    <Badge className={order.status === "Pago" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>
+                                      {order.status}
+                                    </Badge>
                                     {userRole === "admin" && (
                                       <Switch
                                         checked={order.status === "Pago"}

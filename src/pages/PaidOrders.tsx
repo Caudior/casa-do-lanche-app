@@ -20,6 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge"; // Importando o componente Badge
 
 interface Order {
   id: string;
@@ -118,7 +119,7 @@ const PaidOrders = () => {
         });
         currentTotalDailySales += orderTotal;
       });
-      setClientOrderGroups(Array.from(groupsMap.values()).sort((a, b) => a.userName.localeCompare(b.userName)));
+      setClientOrderGroups(Array.from(groupsMap.values()).sort((a, b) => a.userName.localeCompare(b.userName))); // Ordena alfabeticamente
       setTotalDailySales(currentTotalDailySales);
     }
     setLoading(false);
@@ -291,7 +292,9 @@ const PaidOrders = () => {
                             <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
                             <TableCell className="whitespace-nowrap">
                               <div className="flex items-center gap-2">
-                                <span>{order.status}</span>
+                                <Badge className={order.status === "Pago" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>
+                                  {order.status}
+                                </Badge>
                                 <Switch
                                   checked={order.status === "Pago"}
                                   onCheckedChange={(checked) => handleUpdateOrderStatus(order.id, checked ? "Pago" : "Pendente")}
