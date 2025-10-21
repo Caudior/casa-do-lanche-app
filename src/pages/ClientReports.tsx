@@ -17,13 +17,14 @@ import { format, getMonth, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import LogoutButton from "@/components/LogoutButton";
 import { useUserRole } from "@/hooks/useUserRole"; // Importar o hook useUserRole
+import { Badge } from "@/components/ui/badge"; // Importando o componente Badge
 
 interface ClientOrder {
   id: string;
   cardapio_id: string;
   quantidade: number;
   total: number;
-  status: string;
+  status: "Pendente" | "Pago"; // Definindo os tipos de status
   data_pedido: string;
   item_nome?: string;
 }
@@ -198,7 +199,11 @@ const ClientReports = () => {
                         <TableCell className="font-medium whitespace-nowrap">{order.item_nome}</TableCell>
                         <TableCell>{order.quantidade}</TableCell>
                         <TableCell className="whitespace-nowrap">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
-                        <TableCell className="whitespace-nowrap">{order.status}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <Badge className={order.status === "Pago" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="whitespace-nowrap">{format(new Date(order.data_pedido), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
                       </TableRow>
                     ))}
