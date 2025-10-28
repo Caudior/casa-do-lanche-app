@@ -89,6 +89,18 @@ const AdminDashboard = () => {
 
           <Card className="flex flex-col">
             <CardHeader>
+              <CardTitle>Disponibilidade Diária</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground mb-4">Defina e gerencie a quantidade de itens disponíveis por dia.</p>
+              <Button onClick={() => navigate("/admin/daily-availability")} className="w-full bg-primary hover:bg-primary/90">
+                Acessar
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="flex flex-col">
+            <CardHeader>
               <CardTitle>Inserir Dados de Teste</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
