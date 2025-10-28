@@ -5,13 +5,14 @@ import LogoutButton from "@/components/LogoutButton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { showSuccess, showError } from "@/utils/toast"; // Importação atualizada
+import { showSuccess, showError } from "@/utils/toast";
 import { useSession } from "@supabase/auth-helpers-react";
 import { v4 as uuidv4 } from 'uuid';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus } from "lucide-react"; // Importando ícones de mais e menos
+import { Minus, Plus } from "lucide-react";
+import { format } from "date-fns"; // Importar format para formatar a data
 
 interface MenuItem {
   id: string;
@@ -20,11 +21,12 @@ interface MenuItem {
   preco: number;
   imagem_url: string;
   ativo: boolean;
+  quantidade_disponivel?: number; // Adicionar campo para disponibilidade
 }
 
 const Menu = () => {
   const navigate = useNavigate();
-  const { userRole, isLoadingRole, userProfile } = useUserRole(); // Usando userProfile
+  const { userRole, isLoadingRole, userProfile } = useUserRole();
   const session = useSession();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -32,26 +34,58 @@ const Menu = () => {
 
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [itemToOrder, setItemToOrder] = useState<MenuItem | null>(null);
-  const [orderQuantity, setOrderQuantity] = useState(1); // Default quantity
+  const [orderQuantity, setOrderQuantity] = useState(1);
 
   useEffect(() => {
-    fetchMenuItems();
+    fetchMenuItemsWithAvailability();
   }, []);
 
-  const fetchMenuItems = async () => {
+  const fetchMenuItemsWithAvailability = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const formattedDate = format(new Date(), "yyyy-MM-dd");
+
+    // 1. Fetch all active menu items
+    const { data: menuItemsData, error: menuItemsError } = await supabase
       .from("cardapio")
-      .select("*")
-      .eq("ativo", true) // Buscar apenas itens ativos
+      .select("id, nome, descricao, preco, imagem_url, ativo")
+      .eq("ativo", true)
       .order("nome", { ascending: true });
 
-    if (error) {
-      showError("Erro ao carregar itens do cardápio: " + error.message); // Usando showError
-      setMenuItems([]); // Limpar itens em caso de erro
-    } else {
-      setMenuItems(data as MenuItem[]);
+    if (menuItemsError) {
+      showError("Erro ao carregar itens do cardápio: " + menuItemsError.message);
+      setMenuItems([]);
+      setLoading(false);
+      return;
     }
+
+    // 2. Fetch daily availability for today
+    const { data: availabilityData, error: availabilityError } = await supabase
+      .from("disponibilidade_diaria_cardapio")
+      .select("cardapio_id, quantidade_disponivel")
+      .eq("data_disponibilidade", formattedDate);
+
+    if (availabilityError) {
+      showError("Erro ao carregar disponibilidade diária: " + availabilityError.message);
+      // Continue without availability if there's an error, or set all to 0
+      const itemsWithoutAvailability = menuItemsData.map(item => ({
+        ...item,
+        quantidade_disponivel: 0, // Assume 0 se não conseguir carregar
+      }));
+      setMenuItems(itemsWithoutAvailability as MenuItem[]);
+      setLoading(false);
+      return;
+    }
+
+    // 3. Combine menu items with their availability
+    const combinedMenuItems: MenuItem[] = menuItemsData.map((item: any) => {
+      const avail = availabilityData.find((a: any) => a.cardapio_id === item.id);
+      return {
+        ...item,
+        quantidade_disponivel: avail ? avail.quantidade_disponivel : 0, // Default to 0 if no availability set
+      };
+    });
+
+    setMenuItems(combinedMenuItems);
     setLoading(false);
   };
 
@@ -62,63 +96,99 @@ const Menu = () => {
   };
 
   const handleDecreaseQuantity = () => {
-    setOrderQuantity((prev) => Math.max(1, prev - 1)); // Garante que a quantidade mínima é 1
+    setOrderQuantity((prev) => Math.max(1, prev - 1));
   };
 
   const handleIncreaseQuantity = () => {
-    setOrderQuantity((prev) => prev + 1);
+    if (itemToOrder && itemToOrder.quantidade_disponivel !== undefined) {
+      setOrderQuantity((prev) => Math.min(prev + 1, itemToOrder.quantidade_disponivel!)); // Limita à disponibilidade
+    } else {
+      setOrderQuantity((prev) => prev + 1);
+    }
   };
 
   const confirmOrder = async () => {
     if (!itemToOrder) return;
 
     if (orderQuantity <= 0) {
-      showError("A quantidade deve ser maior que zero."); // Usando showError
+      showError("A quantidade deve ser maior que zero.");
       return;
     }
 
     if (!session?.user) {
-      showError("Você precisa estar logado para fazer um pedido."); // Usando showError
+      showError("Você precisa estar logado para fazer um pedido.");
       navigate("/login");
+      return;
+    }
+
+    if (itemToOrder.quantidade_disponivel !== undefined && orderQuantity > itemToOrder.quantidade_disponivel) {
+      showError(`Não há quantidade suficiente de "${itemToOrder.nome}" disponível. Restam apenas ${itemToOrder.quantidade_disponivel}.`);
       return;
     }
 
     const orderId = uuidv4();
     const total = itemToOrder.preco * orderQuantity;
     const orderDate = new Date().toISOString();
+    const formattedDate = format(new Date(), "yyyy-MM-dd");
 
-    const { error: insertError } = await supabase.from("pedidos").insert({
-      id: orderId,
-      usuario_id: session.user.id,
-      cardapio_id: itemToOrder.id,
-      quantidade: orderQuantity, // Agora diretamente um número
-      total: parseFloat(total.toFixed(2)), // Garante 2 casas decimais e tipo numérico
-      data_pedido: orderDate,
-      status: "Pendente",
-    });
+    try {
+      // Iniciar uma transação ou usar RLS para garantir atomicidade
+      // Para simplificar, faremos duas operações separadas, mas em um ambiente de produção,
+      // uma função de banco de dados ou Edge Function seria mais robusta.
 
-    if (insertError) {
-      showError("Erro ao fazer pedido: " + insertError.message); // Usando showError
-      return;
+      // 1. Inserir o pedido
+      const { error: insertError } = await supabase.from("pedidos").insert({
+        id: orderId,
+        usuario_id: session.user.id,
+        cardapio_id: itemToOrder.id,
+        quantidade: orderQuantity,
+        total: parseFloat(total.toFixed(2)),
+        data_pedido: orderDate,
+        status: "Pendente",
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      // 2. Atualizar a disponibilidade diária
+      const { error: updateAvailabilityError } = await supabase
+        .from("disponibilidade_diaria_cardapio")
+        .update({
+          quantidade_disponivel: itemToOrder.quantidade_disponivel! - orderQuantity,
+        })
+        .eq("cardapio_id", itemToOrder.id)
+        .eq("data_disponibilidade", formattedDate);
+
+      if (updateAvailabilityError) {
+        // Se a atualização da disponibilidade falhar, você pode querer reverter o pedido
+        // ou logar o erro para correção manual. Por enquanto, apenas mostraremos o erro.
+        console.error("Erro ao atualizar disponibilidade após pedido:", updateAvailabilityError.message);
+        showError("Pedido realizado, mas houve um erro ao atualizar o estoque. Por favor, informe um administrador.");
+        // Não lançar erro aqui para não impedir o WhatsApp
+      } else {
+        showSuccess(`"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`);
+      }
+
+      // Abrir WhatsApp com a mensagem pré-preenchida
+      const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues
+      const ownerName = "CLAUDIO RODRIGUES"; 
+      const clientName = userProfile?.nome || "Cliente";
+      const formattedTotal = total.toFixed(2).replace('.', ',');
+
+      const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmou ter comprado ${orderQuantity}x *${itemToOrder.nome}* no valor total de *R$ ${formattedTotal}* como mostra a mensagem.`;
+      const encodedMessage = encodeURIComponent(whatsappMessage);
+      const whatsappUrl = `https://wa.me/${ownerPhoneNumber}?text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank');
+
+      setIsOrderDialogOpen(false);
+      setItemToOrder(null);
+      setOrderQuantity(1);
+      fetchMenuItemsWithAvailability(); // Re-fetch para atualizar a disponibilidade na tela
+    } catch (error: any) {
+      showError("Erro ao fazer pedido: " + error.message);
     }
-
-    showSuccess(`"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`); // Usando showSuccess
-
-    // Abrir WhatsApp com a mensagem pré-preenchida
-    const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues
-    const ownerName = "CLAUDIO RODRIGUES"; 
-    const clientName = userProfile?.nome || "Cliente"; // Usando userProfile.nome
-    const formattedTotal = total.toFixed(2).replace('.', ','); // Formata o total para exibição
-
-    const whatsappMessage = `Olá ${ownerName}, o cliente ${clientName} confirmou ter comprado ${orderQuantity}x *${itemToOrder.nome}* no valor total de *R$ ${formattedTotal}* como mostra a mensagem.`;
-    const encodedMessage = encodeURIComponent(whatsappMessage);
-    const whatsappUrl = `https://wa.me/${ownerPhoneNumber}?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
-
-    setIsOrderDialogOpen(false); // Fecha o diálogo após o pedido
-    setItemToOrder(null);
-    setOrderQuantity(1);
   };
 
   return (
@@ -137,7 +207,7 @@ const Menu = () => {
                 Painel Admin
               </Button>
             )}
-            {!isLoadingRole && session?.user && ( // Mostrar para usuários logados (clientes ou admins)
+            {!isLoadingRole && session?.user && (
               <Button onClick={() => navigate("/my-reports")} variant="destructive" className="w-full sm:w-auto">
                 Histórico de Pedidos
               </Button>
@@ -161,9 +231,20 @@ const Menu = () => {
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <p className="text-2xl font-semibold text-primary">R$ {item.preco.toFixed(2)}</p>
+                  {item.quantidade_disponivel !== undefined && (
+                    <p className={`text-sm mt-2 ${item.quantidade_disponivel > 0 ? "text-muted-foreground" : "text-destructive font-semibold"}`}>
+                      Disponível: {item.quantidade_disponivel}
+                    </p>
+                  )}
                 </CardContent>
                 <CardFooter>
-                  <Button onClick={() => handleOpenOrderDialog(item)} className="w-full bg-primary hover:bg-primary/90">Adicionar ao Pedido</Button>
+                  <Button 
+                    onClick={() => handleOpenOrderDialog(item)} 
+                    className="w-full bg-primary hover:bg-primary/90"
+                    disabled={item.quantidade_disponivel === 0} // Desabilita se não houver estoque
+                  >
+                    {item.quantidade_disponivel === 0 ? "Esgotado" : "Adicionar ao Pedido"}
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
@@ -204,7 +285,7 @@ const Menu = () => {
                   </Button>
                   <Input
                     id="quantity"
-                    type="text" // Alterado para text para evitar teclado numérico em mobile e controlar via botões
+                    type="text"
                     readOnly
                     value={orderQuantity}
                     className="w-16 text-center"
@@ -214,11 +295,20 @@ const Menu = () => {
                     variant="outline"
                     size="icon"
                     onClick={handleIncreaseQuantity}
+                    disabled={itemToOrder.quantidade_disponivel !== undefined && orderQuantity >= itemToOrder.quantidade_disponivel}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
+              {itemToOrder.quantidade_disponivel !== undefined && (
+                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 text-sm text-muted-foreground">
+                  <Label className="text-left sm:text-right">Estoque</Label>
+                  <span className="col-span-1 sm:col-span-3">
+                    {itemToOrder.quantidade_disponivel} disponível
+                  </span>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4 font-bold text-lg">
                 <Label className="text-left sm:text-right">Total</Label>
                 <span className="col-span-1 sm:col-span-3">R$ {(itemToOrder.preco * orderQuantity).toFixed(2).replace('.', ',')}</span>
@@ -227,7 +317,13 @@ const Menu = () => {
           )}
           <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-end">
             <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
-            <Button onClick={confirmOrder} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">Confirmar Pedido</Button>
+            <Button 
+              onClick={confirmOrder} 
+              className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+              disabled={itemToOrder?.quantidade_disponivel === 0 || orderQuantity > (itemToOrder?.quantidade_disponivel || 0)}
+            >
+              Confirmar Pedido
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
