@@ -124,14 +124,20 @@ const OrderManagement = () => {
 
     setLoading(true);
     try {
-      // Chamar a função RPC para cancelar o pedido e restaurar o estoque
+      console.log("Dyad Debug: Tentando chamar RPC 'cancel_order_and_restore_stock' para o pedido:", orderToDeleteId);
       const { error } = await supabase.rpc('cancel_order_and_restore_stock', { p_order_id: orderToDeleteId });
 
       if (error) {
+        console.error("Dyad Debug: Erro na chamada RPC 'cancel_order_and_restore_stock':", error);
         throw error;
       }
       showSuccess("Pedido excluído e estoque restaurado com sucesso."); // Usando showSuccess
-      fetchOrders(date); // Re-fetch orders to update the table
+      
+      console.log("Dyad Debug: Aguardando 500ms antes de chamar fetchOrders para atualizar a tela.");
+      setTimeout(() => {
+        fetchOrders(date); // Re-fetch orders to update the table
+      }, 500); // Atraso de 500ms
+      
     } catch (error: any) {
       showError("Erro ao excluir pedido e restaurar estoque: " + error.message); // Usando showError
     } finally {
