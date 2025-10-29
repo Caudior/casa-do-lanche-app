@@ -123,20 +123,22 @@ const OrderManagement = () => {
     if (!orderToDeleteId) return;
 
     setLoading(true);
-    const { error } = await supabase
-      .from("pedidos")
-      .delete()
-      .eq("id", orderToDeleteId);
+    try {
+      // Chamar a função RPC para cancelar o pedido e restaurar o estoque
+      const { error } = await supabase.rpc('cancel_order_and_restore_stock', { p_order_id: orderToDeleteId });
 
-    if (error) {
-      showError("Erro ao excluir pedido: " + error.message); // Usando showError
-    } else {
-      showSuccess("Pedido excluído com sucesso."); // Usando showSuccess
-      fetchOrders(date);
+      if (error) {
+        throw error;
+      }
+      showSuccess("Pedido excluído e estoque restaurado com sucesso."); // Usando showSuccess
+      fetchOrders(date); // Re-fetch orders to update the table
+    } catch (error: any) {
+      showError("Erro ao excluir pedido e restaurar estoque: " + error.message); // Usando showError
+    } finally {
+      setLoading(false);
+      setIsDeleteDialogOpen(false);
+      setOrderToDeleteId(null);
     }
-    setLoading(false);
-    setIsDeleteDialogOpen(false);
-    setOrderToDeleteId(null);
   };
 
   if (isLoadingRole) {
@@ -291,7 +293,7 @@ const OrderManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. Isso excluirá permanentemente este pedido.
+                              Esta ação não pode ser desfeita. Isso excluirá permanentemente este pedido e restaurará o estoque.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
