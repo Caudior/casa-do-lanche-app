@@ -24,6 +24,8 @@ interface MenuItem {
   quantidade_disponivel?: number; // Adicionar campo para disponibilidade
 }
 
+const APP_VERSION = "V.10.0.0.1"; // Versão do aplicativo atualizada
+
 const Menu = () => {
   const navigate = useNavigate();
   const location = useLocation(); // Inicializar useLocation
@@ -259,6 +261,9 @@ const Menu = () => {
             ))}
           </div>
         )}
+        <div className="text-right text-xs text-destructive mt-8"> {/* Alterado para text-destructive */}
+          Versão: {APP_VERSION}
+        </div>
       </div>
 
       {/* Diálogo de Confirmação de Pedido */}
