@@ -37,8 +37,10 @@ const Menu = () => {
   const [orderQuantity, setOrderQuantity] = useState(1);
 
   useEffect(() => {
+    // Este useEffect agora será executado sempre que o componente for montado
+    // ou quando o usuário navegar de volta para esta página.
     fetchMenuItemsWithAvailability();
-  }, []);
+  }, [navigate]); // Adicionar 'navigate' como dependência para re-executar ao navegar para a página
 
   const fetchMenuItemsWithAvailability = async () => {
     setLoading(true);
@@ -85,7 +87,7 @@ const Menu = () => {
       };
     });
 
-    console.log("Dyad Debug: Dados de cardápio com disponibilidade recebidos:", combinedMenuItems); // NOVO LOG AQUI
+    console.log("Dyad Debug: Dados de cardápio com disponibilidade recebidos:", combinedMenuItems);
     setMenuItems(combinedMenuItems);
     setLoading(false);
   };
