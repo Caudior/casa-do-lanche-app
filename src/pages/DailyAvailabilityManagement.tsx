@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
-import { CalendarIcon, Save } from "lucide-react";
+import { CalendarIcon, Save, RefreshCcw } from "lucide-react"; // Importar RefreshCcw para o ícone de recarregar
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -45,6 +45,7 @@ const DailyAvailabilityManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAvailability, setCurrentAvailability] = useState<Partial<DailyAvailability> | null>(null);
   const [dialogMenuItemName, setDialogMenuItemName] = useState<string>("");
+  const [isRecalculating, setIsRecalculating] = useState(false); // Novo estado para o botão de recalcular
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
@@ -155,6 +156,25 @@ const DailyAvailabilityManagement = () => {
     setLoading(false);
   };
 
+  const handleRecalculateAvailability = async () => {
+    setIsRecalculating(true);
+    const formattedDate = selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+
+    try {
+      const { error } = await supabase.rpc('reconcile_daily_availability', { p_date: formattedDate });
+
+      if (error) {
+        throw error;
+      }
+      showSuccess("Disponibilidade diária recalculada com sucesso!");
+      fetchData(); // Re-fetch data to update the table with new values
+    } catch (error: any) {
+      showError("Erro ao recalcular disponibilidade: " + error.message);
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
   if (isLoadingRole) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Carregando...</div>;
   }
@@ -170,9 +190,18 @@ const DailyAvailabilityManagement = () => {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
             Gerenciar Disponibilidade Diária {userProfile?.nome && <span className="text-muted-foreground text-2xl"> - Olá, {userProfile.nome}!</span>}
           </h1>
-          <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
-            Voltar para o Painel
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button onClick={() => navigate("/admin")} variant="outline" className="w-full sm:w-auto">
+              Voltar para o Painel
+            </Button>
+            <Button
+              onClick={handleRecalculateAvailability}
+              disabled={isRecalculating || loading}
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground w-full sm:w-auto"
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" /> {isRecalculating ? "Recalculando..." : "Recalcular Saldo do Dia"}
+            </Button>
+          </div>
         </div>
 
         <Card className="mb-6">
