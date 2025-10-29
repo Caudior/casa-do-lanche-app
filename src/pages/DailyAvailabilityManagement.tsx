@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
-import { CalendarIcon, Save, RefreshCcw } from "lucide-react"; // Importar RefreshCcw para o ícone de recarregar
+import { CalendarIcon, Save, RefreshCcw, RotateCcw } from "lucide-react"; // Importar RotateCcw para o ícone de atualizar
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -45,7 +45,7 @@ const DailyAvailabilityManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAvailability, setCurrentAvailability] = useState<Partial<DailyAvailability> | null>(null);
   const [dialogMenuItemName, setDialogMenuItemName] = useState<string>("");
-  const [isRecalculating, setIsRecalculating] = useState(false); // Novo estado para o botão de recalcular
+  const [isRecalculating, setIsRecalculating] = useState(false);
 
   useEffect(() => {
     if (!isLoadingRole && userRole !== "admin") {
@@ -200,6 +200,13 @@ const DailyAvailabilityManagement = () => {
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground w-full sm:w-auto"
             >
               <RefreshCcw className="h-4 w-4 mr-2" /> {isRecalculating ? "Recalculando..." : "Recalcular Saldo do Dia"}
+            </Button>
+            <Button
+              onClick={fetchData} // Botão para atualizar os dados
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" /> Atualizar Dados
             </Button>
           </div>
         </div>
