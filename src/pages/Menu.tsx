@@ -85,6 +85,7 @@ const Menu = () => {
       };
     });
 
+    console.log("Dyad Debug: Dados de cardápio com disponibilidade recebidos:", combinedMenuItems); // NOVO LOG AQUI
     setMenuItems(combinedMenuItems);
     setLoading(false);
   };
@@ -109,7 +110,7 @@ const Menu = () => {
   };
 
   const confirmOrder = async () => {
-    console.log("Dyad Debug: Função confirmOrder iniciada."); // Novo log aqui
+    console.log("Dyad Debug: Função confirmOrder iniciada.");
     if (!itemToOrder) return;
 
     if (orderQuantity <= 0) {
@@ -177,8 +178,13 @@ const Menu = () => {
       setIsOrderDialogOpen(false);
       setItemToOrder(null);
       setOrderQuantity(1);
-      console.log("Dyad Debug: Chamando fetchMenuItemsWithAvailability para atualizar a tela.");
-      fetchMenuItemsWithAvailability(); // Re-fetch para atualizar a disponibilidade na tela
+      
+      // NOVO: Adicionar um pequeno atraso antes de recarregar o cardápio
+      console.log("Dyad Debug: Aguardando 500ms antes de chamar fetchMenuItemsWithAvailability para atualizar a tela.");
+      setTimeout(() => {
+        fetchMenuItemsWithAvailability(); // Re-fetch para atualizar a disponibilidade na tela
+      }, 500); // Atraso de 500ms
+      
     } catch (error: any) {
       console.error("Dyad Debug: Erro geral em confirmOrder:", error);
       showError(error.message || "Ocorreu um erro ao fazer o pedido.");
