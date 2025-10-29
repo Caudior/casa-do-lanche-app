@@ -131,6 +131,16 @@ const Menu = () => {
     const formattedDate = format(orderDate, "yyyy-MM-dd");
 
     try {
+      console.log("Dyad Debug: Tentando fazer pedido via RPC com os seguintes parâmetros:", {
+        p_usuario_id: session.user.id,
+        p_cardapio_id: itemToOrder.id,
+        p_quantidade: orderQuantity,
+        p_total: parseFloat(total.toFixed(2)),
+        p_status: "Pendente",
+        p_data_pedido: orderDate.toISOString(),
+        p_data_disponibilidade: formattedDate,
+      });
+
       // Chamar a nova função de banco de dados para registrar o pedido e deduzir o estoque
       const { data: orderId, error: rpcError } = await supabase.rpc('place_order_and_deduct_stock', {
         p_usuario_id: session.user.id,
@@ -143,9 +153,11 @@ const Menu = () => {
       });
 
       if (rpcError) {
+        console.error("Dyad Debug: Erro na chamada RPC 'place_order_and_deduct_stock':", rpcError);
         throw rpcError;
       }
 
+      console.log("Dyad Debug: Pedido realizado com sucesso, ID do pedido:", orderId);
       showSuccess(`"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`);
 
       // Abrir WhatsApp com a mensagem pré-preenchida
@@ -163,8 +175,10 @@ const Menu = () => {
       setIsOrderDialogOpen(false);
       setItemToOrder(null);
       setOrderQuantity(1);
+      console.log("Dyad Debug: Chamando fetchMenuItemsWithAvailability para atualizar a tela.");
       fetchMenuItemsWithAvailability(); // Re-fetch para atualizar a disponibilidade na tela
     } catch (error: any) {
+      console.error("Dyad Debug: Erro geral em confirmOrder:", error);
       showError(error.message || "Ocorreu um erro ao fazer o pedido.");
     }
   };
