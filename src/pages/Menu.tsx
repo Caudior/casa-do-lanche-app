@@ -126,49 +126,27 @@ const Menu = () => {
       return;
     }
 
-    const orderId = uuidv4();
     const total = itemToOrder.preco * orderQuantity;
-    const orderDate = new Date().toISOString();
-    const formattedDate = format(new Date(), "yyyy-MM-dd");
+    const orderDate = new Date();
+    const formattedDate = format(orderDate, "yyyy-MM-dd");
 
     try {
-      // Iniciar uma transação ou usar RLS para garantir atomicidade
-      // Para simplificar, faremos duas operações separadas, mas em um ambiente de produção,
-      // uma função de banco de dados ou Edge Function seria mais robusta.
-
-      // 1. Inserir o pedido
-      const { error: insertError } = await supabase.from("pedidos").insert({
-        id: orderId,
-        usuario_id: session.user.id,
-        cardapio_id: itemToOrder.id,
-        quantidade: orderQuantity,
-        total: parseFloat(total.toFixed(2)),
-        data_pedido: orderDate,
-        status: "Pendente",
+      // Chamar a nova função de banco de dados para registrar o pedido e deduzir o estoque
+      const { data: orderId, error: rpcError } = await supabase.rpc('place_order_and_deduct_stock', {
+        p_usuario_id: session.user.id,
+        p_cardapio_id: itemToOrder.id,
+        p_quantidade: orderQuantity,
+        p_total: parseFloat(total.toFixed(2)),
+        p_status: "Pendente",
+        p_data_pedido: orderDate.toISOString(),
+        p_data_disponibilidade: formattedDate,
       });
 
-      if (insertError) {
-        throw insertError;
+      if (rpcError) {
+        throw rpcError;
       }
 
-      // 2. Atualizar a disponibilidade diária
-      const { error: updateAvailabilityError } = await supabase
-        .from("disponibilidade_diaria_cardapio")
-        .update({
-          quantidade_disponivel: itemToOrder.quantidade_disponivel! - orderQuantity,
-        })
-        .eq("cardapio_id", itemToOrder.id)
-        .eq("data_disponibilidade", formattedDate);
-
-      if (updateAvailabilityError) {
-        // Se a atualização da disponibilidade falhar, você pode querer reverter o pedido
-        // ou logar o erro para correção manual. Por enquanto, apenas mostraremos o erro.
-        console.error("Erro ao atualizar disponibilidade após pedido:", updateAvailabilityError.message);
-        showError("Pedido realizado, mas houve um erro ao atualizar o estoque. Por favor, informe um administrador.");
-        // Não lançar erro aqui para não impedir o WhatsApp
-      } else {
-        showSuccess(`"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`);
-      }
+      showSuccess(`"${itemToOrder.nome}" (x${orderQuantity}) adicionado ao seu pedido.`);
 
       // Abrir WhatsApp com a mensagem pré-preenchida
       const ownerPhoneNumber = "5521984117689"; // Número de WhatsApp do Claudio Rodrigues
@@ -187,7 +165,7 @@ const Menu = () => {
       setOrderQuantity(1);
       fetchMenuItemsWithAvailability(); // Re-fetch para atualizar a disponibilidade na tela
     } catch (error: any) {
-      showError("Erro ao fazer pedido: " + error.message);
+      showError(error.message || "Ocorreu um erro ao fazer o pedido.");
     }
   };
 
