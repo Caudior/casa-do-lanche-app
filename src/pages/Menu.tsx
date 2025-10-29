@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Adicionado useLocation
 import LogoutButton from "@/components/LogoutButton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect } from "react";
@@ -26,6 +26,7 @@ interface MenuItem {
 
 const Menu = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Inicializar useLocation
   const { userRole, isLoadingRole, userProfile } = useUserRole();
   const session = useSession();
 
@@ -37,14 +38,16 @@ const Menu = () => {
   const [orderQuantity, setOrderQuantity] = useState(1);
 
   useEffect(() => {
-    // Este useEffect agora será executado sempre que o componente for montado
-    // ou quando o usuário navegar de volta para esta página.
-    fetchMenuItemsWithAvailability();
-  }, [navigate]); // Adicionar 'navigate' como dependência para re-executar ao navegar para a página
+    console.log("Dyad Debug: Menu.tsx useEffect triggered. Current pathname:", location.pathname);
+    if (location.pathname === "/menu") { // Garante que a busca só ocorra na página do cardápio
+      fetchMenuItemsWithAvailability();
+    }
+  }, [location.pathname]); // Depender de location.pathname para re-executar ao navegar para a página
 
   const fetchMenuItemsWithAvailability = async () => {
     setLoading(true);
     const formattedDate = format(new Date(), "yyyy-MM-dd");
+    console.log("Dyad Debug: fetchMenuItemsWithAvailability iniciado para a data:", formattedDate);
 
     // 1. Fetch all active menu items
     const { data: menuItemsData, error: menuItemsError } = await supabase
@@ -54,11 +57,13 @@ const Menu = () => {
       .order("nome", { ascending: true });
 
     if (menuItemsError) {
+      console.error("Dyad Debug: Erro ao carregar itens do cardápio:", menuItemsError.message);
       showError("Erro ao carregar itens do cardápio: " + menuItemsError.message);
       setMenuItems([]);
       setLoading(false);
       return;
     }
+    console.log("Dyad Debug: Itens do cardápio brutos recebidos:", menuItemsData);
 
     // 2. Fetch daily availability for today
     const { data: availabilityData, error: availabilityError } = await supabase
@@ -67,6 +72,7 @@ const Menu = () => {
       .eq("data_disponibilidade", formattedDate);
 
     if (availabilityError) {
+      console.error("Dyad Debug: Erro ao carregar disponibilidade diária:", availabilityError.message);
       showError("Erro ao carregar disponibilidade diária: " + availabilityError.message);
       // Continue without availability if there's an error, or set all to 0
       const itemsWithoutAvailability = menuItemsData.map(item => ({
@@ -77,6 +83,7 @@ const Menu = () => {
       setLoading(false);
       return;
     }
+    console.log("Dyad Debug: Disponibilidade diária bruta recebida:", availabilityData);
 
     // 3. Combine menu items with their availability
     const combinedMenuItems: MenuItem[] = menuItemsData.map((item: any) => {
@@ -87,7 +94,7 @@ const Menu = () => {
       };
     });
 
-    console.log("Dyad Debug: Dados de cardápio com disponibilidade recebidos:", combinedMenuItems);
+    console.log("Dyad Debug: Dados de cardápio com disponibilidade combinada:", combinedMenuItems);
     setMenuItems(combinedMenuItems);
     setLoading(false);
   };
