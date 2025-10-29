@@ -90,6 +90,7 @@ const Menu = () => {
   };
 
   const handleOpenOrderDialog = (item: MenuItem) => {
+    console.log("Dyad Debug: Abrindo diálogo de pedido para o item:", item.nome);
     setItemToOrder(item);
     setOrderQuantity(1); // Reset quantity when opening dialog
     setIsOrderDialogOpen(true);
@@ -108,6 +109,7 @@ const Menu = () => {
   };
 
   const confirmOrder = async () => {
+    console.log("Dyad Debug: Função confirmOrder iniciada."); // Novo log aqui
     if (!itemToOrder) return;
 
     if (orderQuantity <= 0) {
